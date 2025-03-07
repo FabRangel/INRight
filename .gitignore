@@ -1,0 +1,109 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+*.tmp
+*.bak
+*.old
+*.orig
+*.rej
+*.swo
+*.swn
+.DS_Store
+Thumbs.db
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# System files
+*.~
+*.swp
+*.swo
+*.bak
+
+# Editor-specific files
+.vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Node.js related (if using)
+node_modules/
+.npm/
+.npmrc
+.yarn/
+.yarnrc
+
+# Python related (if applicable)
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Java related (if applicable)
+*.jar
+*.war
+*.ear
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio build artifacts
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*
+*.keystore
+*.jks
+
+# Logs and crash reports
+*.log
+*.out
+*.err
+
+# Dependency directories
+/.gradle/
+/.idea/
+
+# Temporary files
+/tmp/
+/.temp/
+.cache/
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Production-specific
+*.key
+*.pem
+*.crt
+*.p12
+*.pfx
+
+# Package managers lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
