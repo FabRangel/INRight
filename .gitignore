@@ -107,3 +107,38 @@ coverage/
 package-lock.json
 yarn.lock
 pnpm-lock.yaml
+
+# macOS system files
+*.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+*.swp
+
+# iOS/Flutter CocoaPods (generated during pod install)
+ios/*
+xcuserdata/
+
+# macOS build
+macos/*
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# VSCode settings (optional, since you may want to exclude these across OS)
+.vscode/settings.json
+.vscode/launch.json
+.vscode/tasks.json
+
+# IDE specific
+.idea/
+*.iml
+
+# Firebase/Google services (if applicable later)
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json

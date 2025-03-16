@@ -4,14 +4,21 @@ class CustomButton extends StatelessWidget {
   final String label;
   final bool isGoogle;
   final VoidCallback onPressed;
+  final Color? buttonColor;
 
-  const CustomButton({super.key, required this.label, required this.onPressed, this.isGoogle = false});
+  const CustomButton({
+    super.key,
+    required this.label,
+    required this.onPressed,
+    this.isGoogle = false,
+    this.buttonColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: isGoogle ? Colors.white : Colors.blue,
+        backgroundColor: isGoogle ? Colors.white : (buttonColor ?? Colors.blue),
         foregroundColor: isGoogle ? Colors.black : Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 14),
         shape: RoundedRectangleBorder(
@@ -23,7 +30,7 @@ class CustomButton extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (isGoogle) Icon(Icons.g_translate, color: Colors.black),
+          if (isGoogle) const Icon(Icons.g_translate, color: Colors.black),
           if (isGoogle) const SizedBox(width: 10),
           Text(label),
         ],

@@ -65,7 +65,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
         _controller.forward(); // Iniciar la animación de la nueva página
       });
     } else {
-      Navigator.pushReplacementNamed(context, '/home');
+      Navigator.pushReplacementNamed(context, '/login');
     }
   }
 
