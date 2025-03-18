@@ -126,10 +126,7 @@ class Page3 extends StatelessWidget {
                                 Text.rich(
                                   TextSpan(
                                     text: "Sintrom ",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                    ),
+                                    style: TextStyle(color: Colors.white),
                                     children: [
                                       TextSpan(
                                         text: "4mg - 21:00",
@@ -241,7 +238,7 @@ class Page3 extends StatelessWidget {
                   const Text(
                     "Acciones rápidas",
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
@@ -251,15 +248,213 @@ class Page3 extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _buildActionItem(Icons.access_time, "Registrar\ndosis"),
-                      _buildActionItem(Icons.remove_red_eye, "Ver\ntendencia"),
+                      _buildActionItem(
+                        Icons.access_time,
+                        "Registrar\ndosis",
+                        const Color.fromARGB(255, 204, 232, 255),
+                      ),
+                      _buildActionItem(
+                        Icons.remove_red_eye,
+                        "Ver\ntendencia",
+                        const Color.fromARGB(255, 217, 251, 220),
+                      ),
                       _buildActionItem(
                         Icons.calendar_today,
                         "Siguiente\nprueba",
+                        const Color.fromARGB(255, 251, 255, 196),
                       ),
                     ],
                   ),
                 ],
+              ),
+            ),
+          ),
+
+          Positioned(
+            top: screenHeight * 0.62,
+            left: 20,
+            right: 20,
+            child: Column(
+              children: [
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 📌 Columna con "Último INR" y "Cumplimiento"
+                      Flexible(
+                        flex: 1,
+                        child: Column(
+                          children: [
+                            _buildInfoCard(
+                              "Último INR",
+                              "2.8",
+                              "En rango",
+                              Colors.green,
+                            ),
+                            const SizedBox(height: 10),
+                            _buildInfoCard(
+                              "Cumplimiento",
+                              "98%",
+                              "7 días",
+                              Colors.green,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 10), // Espaciado entre los cuadros
+                      // 📌 Cuadro de "Mi INR" con pestañas
+                      Flexible(flex: 1, child: _buildChartCard()),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          Positioned(
+            top: screenHeight * 0.85,
+            left: 0,
+            right: 0,
+            child: _buildNextINRCard(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(
+    String title,
+    String value,
+    String subtitle,
+    Color statusColor,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Row(
+            children: [
+              Icon(Icons.check_circle, color: statusColor, size: 14),
+              const SizedBox(width: 5),
+              Text(
+                subtitle,
+                style: TextStyle(fontSize: 12, color: statusColor),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionItem(IconData icon, String text, Color color) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: color, // Se asigna el color pasado como argumento
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: Colors.black, size: 18),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          text,
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 12, color: Colors.black54),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildChartCard() {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black12,
+            blurRadius: 10,
+            offset: Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 📌 Título y pestañas
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                "Mi INR",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              // 🔹 Botones de pestañas (Lineal / Barras)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: Row(
+                  children: [
+                    _buildTabButton("Lineal", isActive: true),
+                    _buildTabButton("Barras", isActive: false),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // 📌 Gráfico simulado (esto puede ser un gráfico real con `fl_chart`)
+          Container(
+            height: 130,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Center(
+              child: Text(
+                "Gráfico aquí",
+                style: TextStyle(fontSize: 10, color: Colors.grey),
               ),
             ),
           ),
@@ -268,24 +463,78 @@ class Page3 extends StatelessWidget {
     );
   }
 
-  Widget _buildActionItem(IconData icon, String text) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: Colors.black12.withOpacity(0.05),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: Colors.black87, size: 24),
+  //  Función para los botones de las pestañas (Lineal / Barras)
+  Widget _buildTabButton(String text, {required bool isActive}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+      decoration: BoxDecoration(
+        color: isActive ? Colors.white : Colors.transparent,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.bold,
+          color: isActive ? Colors.blue : Colors.black54,
         ),
-        const SizedBox(height: 8),
-        Text(
-          text,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14, color: Colors.black54),
+      ),
+    );
+  }
+
+  // 📌 Widget del último cuadro (Próxima toma de INR)
+  Widget _buildNextINRCard() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
+      child: Container(
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 10,
+              offset: Offset(0, 5),
+            ),
+          ],
         ),
-      ],
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 📌 Ícono de calendario con fondo amarillo
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.yellow.shade100,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.calendar_today, color: Colors.black),
+            ),
+            const SizedBox(width: 10),
+
+            // 📌 Texto de "Próxima toma de INR"
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                Text(
+                  "Próxima toma de INR: 22 Ene",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 5),
+                Text(
+                  "10:30 am",
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
