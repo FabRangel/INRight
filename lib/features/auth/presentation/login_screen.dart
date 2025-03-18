@@ -44,7 +44,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (value == null || value.isEmpty) {
                     return 'El correo es requerido';
                   }
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$').hasMatch(value)) {
+                  if (!RegExp(
+                    r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$',
+                  ).hasMatch(value)) {
                     return 'Correo inválido';
                   }
                   return null;
@@ -79,6 +81,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     // Lógica de inicio de sesión
+                    Navigator.pushReplacementNamed(context, '/home');
                   }
                 },
               ),

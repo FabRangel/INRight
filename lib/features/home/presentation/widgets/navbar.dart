@@ -1,14 +1,19 @@
 import 'package:animated_notch_bottom_bar/animated_notch_bottom_bar/animated_notch_bottom_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:inright/features/home/presentation/pages/page1.dart';
+import 'package:inright/features/home/presentation/pages/page2.dart';
+import 'package:inright/features/home/presentation/pages/page3.dart';
+import 'package:inright/features/home/presentation/pages/page4.dart';
+import 'package:inright/features/home/presentation/pages/page5.dart';
 
-class Home extends StatefulWidget {
-  const Home({super.key});
+class Navbar extends StatefulWidget {
+  const Navbar({super.key});
 
   @override
-  State<Home> createState() => _HomeState();
+  State<Navbar> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
+class _HomeState extends State<Navbar> {
   final _pageController = PageController(initialPage: 2);
   final NotchBottomBarController _controller = NotchBottomBarController(
     index: 2,
@@ -31,6 +36,12 @@ class _HomeState extends State<Home> {
     ];
 
     return Scaffold(
+      // appBar: AppBar(
+      //   backgroundColor: Colors.transparent,
+      //   elevation: 0,
+      //   iconTheme: const IconThemeData(color: Colors.black87),
+      // ),
+      //drawer: _buildSidebar(), // Sidebar agregado
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
@@ -85,74 +96,54 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildActiveIcon(IconData icon, {bool isCenter = true}) {
-    return Container(
-      decoration: BoxDecoration(color: Color.fromARGB(255, 98, 175, 198)),
-      child: Icon(
-        icon,
-        color: const Color.fromARGB(255, 255, 255, 255),
-        size: 25.0,
+  // Función para construir el Sidebar (Drawer)
+  Widget _buildSidebar() {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          const DrawerHeader(
+            decoration: BoxDecoration(color: Color.fromARGB(255, 98, 175, 198)),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.account_circle, size: 50, color: Colors.white),
+                SizedBox(height: 10),
+                Text(
+                  "Usuario",
+                  style: TextStyle(fontSize: 20, color: Colors.white),
+                ),
+              ],
+            ),
+          ),
+          _buildSidebarItem(Icons.show_chart, 'Estadísticas', 0),
+          _buildSidebarItem(Icons.water_drop, 'Hidratación', 1),
+          _buildSidebarItem(Icons.home_filled, 'Inicio', 2),
+          _buildSidebarItem(Icons.medication_sharp, 'Medicinas', 3),
+          _buildSidebarItem(Icons.notifications, 'Notificaciones', 4),
+        ],
       ),
     );
   }
-}
 
-class Page1 extends StatelessWidget {
-  const Page1({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey,
-      child: const Center(child: Text('Page 1')),
+  // Función para generar los ítems del Sidebar
+  Widget _buildSidebarItem(IconData icon, String title, int pageIndex) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.black54),
+      title: Text(title),
+      onTap: () {
+        Navigator.pop(context); // Cierra el Sidebar
+        _pageController.jumpToPage(
+          pageIndex,
+        ); // Navega a la página correspondiente
+      },
     );
   }
-}
 
-class Page2 extends StatelessWidget {
-  const Page2({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildActiveIcon(IconData icon) {
     return Container(
-      color: Colors.grey,
-      child: const Center(child: Text('Page 2')),
-    );
-  }
-}
-
-class Page3 extends StatelessWidget {
-  const Page3({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(0xF7F7F9),
-      child: const Center(child: Text('Page 3')),
-    );
-  }
-}
-
-class Page4 extends StatelessWidget {
-  const Page4({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey,
-      child: const Center(child: Text('Page 4')),
-    );
-  }
-}
-
-class Page5 extends StatelessWidget {
-  const Page5({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Colors.grey,
-      child: const Center(child: Text('Page 5')),
+      decoration: BoxDecoration(color: Color.fromARGB(255, 98, 175, 198)),
+      child: Icon(icon, color: Colors.white, size: 25.0),
     );
   }
 }

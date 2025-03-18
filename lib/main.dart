@@ -5,7 +5,7 @@ import 'package:inright/pages/welcome/welcome_screen.dart';
 import 'package:inright/features/auth/presentation/login_screen.dart';
 import 'package:inright/features/auth/presentation/register_screen.dart';
 import 'package:inright/features/auth/presentation/forgot_password_screen.dart';
-import 'package:inright/features/home/presentation/home.dart';
+import 'package:inright/features/home/presentation/widgets/navbar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -35,7 +35,7 @@ class MainApp extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/register': (context) => RegisterScreen(),
         '/forgot-password': (context) => ForgotPasswordScreen(),
-        '/home': (context) => Home(),
+        '/home': (context) => Navbar(),
       },
     );
   }
