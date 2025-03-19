@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
 class appBarWelcome extends StatelessWidget {
-  const appBarWelcome({
-    super.key,
-  });
+  const appBarWelcome({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +19,6 @@ class appBarWelcome extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 5),
             Text(
               "Bienvenida a tu control INR",
               style: TextStyle(color: Colors.white, fontSize: 16),

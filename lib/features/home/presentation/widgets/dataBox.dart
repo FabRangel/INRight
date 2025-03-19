@@ -1,17 +1,14 @@
 import 'package:flutter/material.dart';
+
 class dataBox extends StatelessWidget {
-  const dataBox({
-    super.key,
-  });
+  const dataBox({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(
-          0.2,
-        ), // Fondo semitransparente
+        color: Colors.white.withOpacity(0.2), // Fondo semitransparente
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -26,10 +23,7 @@ class dataBox extends StatelessWidget {
                   color: Colors.yellow.shade100,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.access_time,
-                  color: Colors.black,
-                ),
+                child: const Icon(Icons.access_time, color: Colors.black),
               ),
               const SizedBox(width: 10),
               Column(
@@ -54,7 +48,6 @@ class dataBox extends StatelessWidget {
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 12,
-                            decoration: TextDecoration.underline,
                             decorationColor: Colors.white,
                           ),
                         ),
@@ -66,7 +59,7 @@ class dataBox extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-    
+
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -76,10 +69,7 @@ class dataBox extends StatelessWidget {
                   color: Colors.yellow.shade100,
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: const Icon(
-                  Icons.bolt,
-                  color: Colors.black,
-                ),
+                child: const Icon(Icons.bolt, color: Colors.black),
               ),
               const SizedBox(width: 10),
               Column(
@@ -96,10 +86,7 @@ class dataBox extends StatelessWidget {
                   SizedBox(height: 2),
                   Text(
                     "Sigue así, vas muy bien",
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 12,
-                    ),
+                    style: TextStyle(color: Colors.white70, fontSize: 12),
                   ),
                 ],
               ),
@@ -120,10 +107,7 @@ class dataBox extends StatelessWidget {
                 SizedBox(width: 5),
                 Text(
                   "Sugerir dosis con IA",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.white, fontSize: 14),
                 ),
               ],
             ),

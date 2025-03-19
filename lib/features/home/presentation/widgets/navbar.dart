@@ -96,36 +96,6 @@ class _HomeState extends State<Navbar> {
     );
   }
 
-  // Función para construir el Sidebar (Drawer)
-  Widget _buildSidebar() {
-    return Drawer(
-      child: ListView(
-        padding: EdgeInsets.zero,
-        children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Color.fromARGB(255, 98, 175, 198)),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.account_circle, size: 50, color: Colors.white),
-                SizedBox(height: 10),
-                Text(
-                  "Usuario",
-                  style: TextStyle(fontSize: 20, color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-          _buildSidebarItem(Icons.show_chart, 'Estadísticas', 0),
-          _buildSidebarItem(Icons.water_drop, 'Hidratación', 1),
-          _buildSidebarItem(Icons.home_filled, 'Inicio', 2),
-          _buildSidebarItem(Icons.medication_sharp, 'Medicinas', 3),
-          _buildSidebarItem(Icons.notifications, 'Notificaciones', 4),
-        ],
-      ),
-    );
-  }
-
   // Función para generar los ítems del Sidebar
   Widget _buildSidebarItem(IconData icon, String title, int pageIndex) {
     return ListTile(

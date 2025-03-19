@@ -3,7 +3,7 @@ import 'package:inright/features/home/presentation/widgets/chartCard.dart';
 import 'package:inright/features/home/presentation/widgets/infoCard.dart';
 import 'package:inright/features/home/presentation/widgets/nextInrCard.dart';
 import 'package:inright/features/home/presentation/widgets/quickActions.dart';
-import 'package:inright/features/home/presentation/widgets/sidebar.dart'; // Importa el Sidebar
+import 'package:inright/features/home/presentation/widgets/sidebar.dart';
 import 'package:inright/features/home/presentation/widgets/appBarWelcome.dart';
 import 'package:inright/features/home/presentation/widgets/dataBox.dart';
 
@@ -13,80 +13,89 @@ class Page3 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
+    double screenWidth = MediaQuery.of(context).size.width;
     double topPadding = MediaQuery.of(context).padding.top;
 
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 247, 247, 249),
       drawer: const Sidebar(),
-      body: Stack(
-        clipBehavior: Clip.none,
-        children: [
-          Container(
-            width: double.infinity,
-            height: screenHeight * 0.45,
-            padding: EdgeInsets.only(top: topPadding),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Color.fromARGB(255, 191, 232, 238),
-                  Color.fromARGB(255, 98, 191, 228),
-                  Color.fromARGB(255, 114, 193, 224),
-                ],
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-              ),
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
-              ),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  appBarWelcome(),
-                  const SizedBox(height: 15),
-                  dataBox(),
-                ],
-              ),
-            ),
-          ),
-
-          Positioned(
-            top: screenHeight * 0.40,
-            left: 20,
-            right: 20,
-            child: QuickActionsWidget(),
-          ),
-
-          Positioned(
-            top: screenHeight * 0.62,
-            left: 20,
-            right: 20,
-            child: Column(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
               children: [
-                Align(
-                  alignment: Alignment.topCenter,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      InfoCard(),
-                      const SizedBox(width: 10),
-                      ChartCard(),
-                    ],
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.only(
+                    top: topPadding,
+                    bottom: screenHeight * 0.05,
                   ),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 191, 232, 238),
+                        Color.fromARGB(255, 98, 191, 228),
+                        Color.fromARGB(255, 114, 193, 224),
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(50),
+                      bottomRight: Radius.circular(50),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: screenWidth * 0.05,
+                      vertical: screenHeight * 0.03,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        appBarWelcome(),
+                        SizedBox(height: screenHeight * 0.015),
+                        dataBox(),
+                      ],
+                    ),
+                  ),
+                ),
+
+                Padding(
+                  padding: EdgeInsets.only(
+                    top: screenHeight * 0.39,
+                    left: screenWidth * 0.05,
+                    right: screenWidth * 0.05,
+                  ),
+                  child: QuickActionsWidget(),
                 ),
               ],
             ),
-          ),
 
-          Positioned(
-            top: screenHeight * 0.85,
-            left: 0,
-            right: 0,
-            child: NextINRCardWidget(),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(child: InfoCard()),
+                  SizedBox(width: screenWidth * 0.025),
+                  Expanded(child: ChartCard()),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 0),
+
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.0),
+              child: const NextINRCardWidget(),
+            ),
+
+            const SizedBox(height: 30),
+          ],
+        ),
       ),
     );
   }

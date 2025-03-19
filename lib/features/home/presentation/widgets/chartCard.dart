@@ -85,7 +85,7 @@ class _ChartCard extends State<ChartCard> {
               child: Center(
                 child: Text(
                   isLineal ? "Gráfico Lineal" : "Gráfico de Barras",
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: const TextStyle(fontSize: 9, color: Colors.grey),
                 ),
               ),
             ),
@@ -112,7 +112,7 @@ class _ChartCard extends State<ChartCard> {
         child: Text(
           text,
           style: TextStyle(
-            fontSize: 9,
+            fontSize: 8,
             fontWeight: FontWeight.bold,
             color: isActive ? Colors.blue : Colors.black54,
           ),
