@@ -12,8 +12,7 @@ class _ChartCard extends State<ChartCard> {
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      flex: 1,
+    return Container(
       child: Container(
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(

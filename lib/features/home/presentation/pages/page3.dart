@@ -62,36 +62,56 @@ class Page3 extends StatelessWidget {
                   ),
                 ),
 
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: screenHeight * 0.39,
-                    left: screenWidth * 0.05,
-                    right: screenWidth * 0.05,
+                Align(
+                  alignment: Alignment.topCenter,
+                  child: Container(
+                    margin: EdgeInsets.only(
+                      top: screenHeight * 0.39,
+                      left: screenWidth * 0.05,
+                      right: screenWidth * 0.05,
+                    ),
+                    child: QuickActionsWidget(),
                   ),
-                  child: QuickActionsWidget(),
                 ),
               ],
             ),
 
             const SizedBox(height: 10),
+            // Padding(
+            //   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
+            //   child: Row(
+            //     crossAxisAlignment: CrossAxisAlignment.start,
+            //     children: [
+            //       Expanded(child: InfoCard()),
+            //       SizedBox(width: screenWidth * 0.025),
+            //       Expanded(child: ChartCard()),
+            //     ],
+            //   ),
+            // ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: InfoCard()),
-                  SizedBox(width: screenWidth * 0.025),
-                  Expanded(child: ChartCard()),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.all(0),
+                      child: InfoCard(),
+                    ),
+                  ),
+                  SizedBox(width: screenWidth * 0.035),
+                  Expanded(
+                    child: Padding(
+                      padding: EdgeInsets.all(0),
+                      child: ChartCard(),
+                    ),
+                  ),
                 ],
               ),
             ),
 
             const SizedBox(height: 0),
-
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.0),
-              child: const NextINRCardWidget(),
-            ),
+            NextINRCardWidget(),
 
             const SizedBox(height: 30),
           ],

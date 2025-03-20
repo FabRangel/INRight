@@ -5,29 +5,18 @@ class InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      flex: 1,
+    return Container(
       child: Column(
         children: [
-          _buildInfoCard(
-            "Último INR",
-            "2.8",
-            "En rango",
-            Colors.green,
-          ),
+          _buildInfoCard("Último INR", "2.8", "En rango", Colors.green),
           const SizedBox(height: 10),
-          _buildInfoCard(
-            "Cumplimiento",
-            "98%",
-            "7 días",
-            Colors.green,
-          ),
+          _buildInfoCard("Cumplimiento", "98%", "7 días", Colors.green),
         ],
       ),
     );
   }
 
- Widget _buildInfoCard(
+  Widget _buildInfoCard(
     String title,
     String value,
     String subtitle,
