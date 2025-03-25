@@ -54,7 +54,7 @@ class Page3 extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        appBarWelcome(),
+                        AppBarWelcome(),
                         SizedBox(height: screenHeight * 0.015),
                         dataBox(),
                       ],
