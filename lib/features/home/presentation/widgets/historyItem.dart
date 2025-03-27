@@ -4,7 +4,7 @@ class HistoryItem extends StatelessWidget {
   final double value;
   final String date;
   final String time;
-  final String trend; // 'up', 'down', 'neutral'
+  final String trend;
 
   const HistoryItem({
     super.key,
@@ -18,23 +18,20 @@ class HistoryItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final isHigh = value >= 3.0;
     final isLow = value < 2.6;
-    final isNeutral = !isHigh && !isLow;
 
     final bgColor = isHigh
         ? const Color(0xFFFFEBEB)
-        : const Color(0xFFEAFBF0); // rojo claro o verde muy claro
+        : const Color(0xFFEAFBF0);
 
     final iconBg = isHigh
         ? const Color(0xFFFFE1E1)
-        : const Color(0xFFDFF7E8); // ícono fondo
+        : const Color(0xFFDFF7E8);
 
     final icon = trend == 'up'
         ? Icons.arrow_upward
         : trend == 'down'
             ? Icons.arrow_downward
             : Icons.remove;
-
-    final iconColor = Colors.black;
 
     final valueColor = isHigh ? Colors.red : Colors.green;
 
@@ -54,10 +51,9 @@ class HistoryItem extends StatelessWidget {
               color: iconBg,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: iconColor, size: 20),
+            child: Icon(icon, color: Colors.black, size: 20),
           ),
           const SizedBox(width: 12),
-
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -69,33 +65,19 @@ class HistoryItem extends StatelessWidget {
                   fontSize: 16,
                 ),
               ),
-              const SizedBox(height: 2),
               Text(
                 date,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: Colors.black54,
-                ),
+                style: const TextStyle(fontSize: 13, color: Colors.black54),
               ),
             ],
           ),
-
           const Spacer(),
-
-          // Hora
           Text(
             time,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Colors.black54,
-            ),
+            style: const TextStyle(fontSize: 13, color: Colors.black54),
           ),
         ],
-        
       ),
-      
     );
-    
   }
-
 }

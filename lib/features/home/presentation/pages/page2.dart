@@ -183,7 +183,6 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
               ],
             ),
 
-            // 🟩 Cuadros de estadísticas con animación
             Transform.translate(
               offset: const Offset(0, -10),
               child: FadeTransition(
@@ -291,7 +290,6 @@ class CustomWaveClipper extends CustomClipper<Path> {
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }
 
-// 📌 Widget reutilizable para los cuadros de estadísticas
 class StatBox extends StatelessWidget {
   final String title;
   final String value;
