@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class appBarWelcome extends StatelessWidget {
-  const appBarWelcome({super.key});
+class AppBarWelcome extends StatelessWidget {
+  const AppBarWelcome({super.key});
 
   @override
   Widget build(BuildContext context) {

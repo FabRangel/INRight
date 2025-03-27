@@ -32,7 +32,7 @@ class _HomeState extends State<Navbar> {
       const Page2(),
       const Page3(),
       const Page4(),
-      const Page5(),
+      Page5(),
     ];
 
     return Scaffold(
