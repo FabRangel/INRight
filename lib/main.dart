@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
+
 import 'package:inright/pages/welcome/welcome_screen.dart';
 import 'package:inright/features/auth/presentation/login_screen.dart';
 import 'package:inright/features/auth/presentation/register_screen.dart';
@@ -9,6 +12,9 @@ import 'package:inright/features/home/presentation/widgets/navbar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isFirstTime = prefs.getBool('first_time') ?? true;
 
