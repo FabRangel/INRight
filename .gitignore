@@ -138,7 +138,3 @@ Desktop.ini
 # IDE specific
 .idea/
 *.iml
-
-# Firebase/Google services (if applicable later)
-ios/Runner/GoogleService-Info.plist
-android/app/google-services.json
