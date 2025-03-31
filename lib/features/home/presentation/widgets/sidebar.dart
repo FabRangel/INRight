@@ -23,18 +23,36 @@ class Sidebar extends StatelessWidget {
               ],
             ),
           ),
-          _buildSidebarItem(context, Icons.show_chart, 'Estadísticas'),
-          _buildSidebarItem(context, Icons.water_drop, 'Hidratación'),
-          _buildSidebarItem(context, Icons.home_filled, 'Inicio'),
-          _buildSidebarItem(context, Icons.medication_sharp, 'Medicinas'),
-          _buildSidebarItem(context, Icons.notifications, 'Notificaciones'),
+          _buildSidebarItem(context, Icons.medication_outlined, 'Mis dosis'),
+          _buildSidebarItem(context, Icons.water_drop_outlined, 'Mis INRs'),
+          _buildSidebarItem(
+            context,
+            Icons.notifications_active_outlined,
+            'Recordatorios',
+          ),
+          _buildSidebarItem(
+            context,
+            Icons.settings_outlined,
+            'Configuraciones',
+          ),
+          _buildSidebarItem(
+            context,
+            Icons.notifications_outlined,
+            'Notificaciones',
+          ),
+          Divider(),
+          _buildSidebarItem(context, Icons.logout, 'Cerrar sesión'),
         ],
       ),
     );
   }
 
   // Función para construir los ítems del Sidebar
-  static Widget _buildSidebarItem(BuildContext context, IconData icon, String title) {
+  static Widget _buildSidebarItem(
+    BuildContext context,
+    IconData icon,
+    String title,
+  ) {
     return ListTile(
       leading: Icon(icon, color: Colors.black54),
       title: Text(title),
