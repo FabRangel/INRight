@@ -19,143 +19,122 @@ class _Page1State extends State<Page1> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
+      body: Column(
+        children: [
+          // 🟦 Header fijo
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(
+              top: 60,
+              left: 20,
+              right: 20,
+              bottom: 30,
+            ),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Color(0xFFB4D8E6), Color(0xFF8AC0CE)],
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(30),
+                bottomRight: Radius.circular(30),
+              ),
+            ),
+            child: Column(
               children: [
-                // Fondo azul con análisis + gráfico
-                Column(
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 60,
-                      ),
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Color(0xFFB4D8E6), Color(0xFF8AC0CE)],
-                        ),
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(30),
-                          bottomRight: Radius.circular(30),
+                    const Expanded(
+                      child: Text(
+                        'Análisis\nINR',
+                        style: TextStyle(
+                          fontSize: 22,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                      child: Column(
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Expanded(
-                                child: Text(
-                                  'Análisis\nINR',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              Row(
-                                children: [
-                                  _buildModeButton('Diario'),
-                                  const SizedBox(width: 4),
-                                  _buildModeButton('Semanal'),
-                                  const SizedBox(width: 4),
-                                  _buildModeButton('Mensual'),
-                                ],
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Promedio',
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const Text(
-                                  '2.8',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: const [
-                                    LegendItem(
-                                      color: Colors.green,
-                                      label: 'Normal',
-                                    ),
-                                    SizedBox(width: 16),
-                                    LegendItem(
-                                      color: Colors.red,
-                                      label: 'Fuera de\nrango',
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 20),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: _buildBars(),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 100,
-                          ), // Espacio para que no se encime con las tarjetas
-                        ],
-                      ),
+                    ),
+                    Row(
+                      children: [
+                        _buildModeButton('Diario'),
+                        const SizedBox(width: 4),
+                        _buildModeButton('Semanal'),
+                        const SizedBox(width: 4),
+                        _buildModeButton('Mensual'),
+                      ],
                     ),
                   ],
                 ),
+                const SizedBox(height: 20),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Promedio',
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                      ),
+                      const Text(
+                        '2.8',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 32,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: const [
+                          LegendItem(color: Colors.green, label: 'Normal'),
+                          SizedBox(width: 16),
+                          LegendItem(
+                            color: Colors.red,
+                            label: 'Fuera de\nrango',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: _buildBars(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
 
-                // Tarjetas flotando sobre el azul
-                Positioned(
-                  top: 430,
-                  left: 10,
-                  right: 10,
-                  child: Row(
+          // 🔄 Contenido scrolleable
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(10, 30, 10, 100),
+              child: Column(
+                children: [
+                  Row(
                     children: [
                       Expanded(child: buildEstabilidadCard()),
                       const SizedBox(width: 16),
                       Expanded(child: buildTendenciaCard()),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 30),
+                  buildHistorialCard(),
+                ],
+              ),
             ),
-
-            const SizedBox(height: 120),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: buildHistorialCard(),
-            ),
-
-            const SizedBox(height: 100),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -193,7 +172,7 @@ List<Widget> _buildBars() {
   ];
 
   return data.map((entry) {
-    final barHeight = (entry['value'] as double) * 20;
+    final barHeight = (entry['value'] as double) * 15;
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
