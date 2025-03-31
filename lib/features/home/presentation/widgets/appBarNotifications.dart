@@ -45,7 +45,7 @@ class AppBarNotificationsState extends State<AppBarNotifications> {
             ),
           ),
           onPressed: () {
-            // Acción al presionar la flecha hacia atrás
+            Navigator.pushNamed(context, '/home');
           },
         ),
         const SizedBox(height: 10),

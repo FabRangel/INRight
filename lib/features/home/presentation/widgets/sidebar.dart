@@ -34,6 +34,7 @@ class Sidebar extends StatelessWidget {
             context,
             Icons.settings_outlined,
             'Configuraciones',
+            onPressed: () => Navigator.pushNamed(context, '/configurations'),
           ),
           _buildSidebarItem(
             context,
@@ -51,13 +52,18 @@ class Sidebar extends StatelessWidget {
   static Widget _buildSidebarItem(
     BuildContext context,
     IconData icon,
-    String title,
-  ) {
+    String title, {
+    VoidCallback? onPressed,
+  }) {
     return ListTile(
       leading: Icon(icon, color: Colors.black54),
       title: Text(title),
       onTap: () {
         Navigator.pop(context); // Cierra el Sidebar
+        Navigator.pop(context); // Cierra el Sidebar
+        if (onPressed != null) {
+          onPressed();
+        }
       },
     );
   }

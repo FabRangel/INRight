@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:inright/features/home/presentation/pages/configurations.dart';
+import 'package:inright/features/home/presentation/pages/page1.dart';
+import 'package:inright/features/home/presentation/pages/page2.dart';
+import 'package:inright/features/home/presentation/pages/page3.dart';
+import 'package:inright/features/home/presentation/pages/page4.dart';
+import 'package:inright/features/home/presentation/pages/page5.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'firebase_options.dart';
@@ -12,9 +18,7 @@ import 'package:inright/features/home/presentation/widgets/navbar.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isFirstTime = prefs.getBool('first_time') ?? true;
 
@@ -42,6 +46,7 @@ class MainApp extends StatelessWidget {
         '/register': (context) => RegisterScreen(),
         '/forgot-password': (context) => ForgotPasswordScreen(),
         '/home': (context) => Navbar(),
+        '/configurations': (context) => Configurations(),
       },
     );
   }
