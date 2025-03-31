@@ -52,219 +52,201 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    double screenHeight = MediaQuery.of(context).size.height;
-    double screenWidth = MediaQuery.of(context).size.width;
-    double topPadding = MediaQuery.of(context).padding.top;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final topPadding = MediaQuery.of(context).padding.top;
+    final double headerHeight = screenHeight * 0.34;
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 247, 247, 249),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                ClipPath(
-                  clipper: CustomWaveClipper(),
-                  child: Container(
-                    width: double.infinity,
-                    height: screenHeight * 0.34,
-                    padding: EdgeInsets.only(
-                      top: topPadding + 10,
-                      left: 20,
-                      right: 20,
-                    ),
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Color.fromARGB(188, 119, 201, 226),
-                          Color.fromARGB(255, 101, 180, 204),
-                          Color.fromARGB(255, 98, 175, 198),
-                        ],
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        const SizedBox(height: 10),
-                        const Text(
-                          "Última medición",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                        const SizedBox(height: 5),
-                        const Text(
-                          "2.8",
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              "15 Ene",
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            SizedBox(width: 20),
-                            Text(
-                              "09:00",
-                              style: TextStyle(
-                                color: Colors.white70,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Column(
-                              children: const [
-                                Text(
-                                  "Mínimo",
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  "2.0",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(width: 40),
-                            Column(
-                              children: const [
-                                Text(
-                                  "Máximo",
-                                  style: TextStyle(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  "3.0",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            Transform.translate(
-              offset: const Offset(0, -10),
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: SlideTransition(
-                  position: _offsetAnimation,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: const [
-                        Expanded(
-                          child: StatBox(
-                            title: "Racha",
-                            value: "7 días",
-                            valueColor: Colors.black,
-                            isBold: true,
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: StatBox(
-                            title: "Más alto",
-                            value: "3.1",
-                            valueColor: Colors.red,
-                          ),
-                        ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: StatBox(
-                            title: "Más bajo",
-                            value: "2.4",
-                            valueColor: Colors.green,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+      body: Column(
+        children: [
+          ClipPath(
+            clipper: CustomWaveClipper(),
+            child: Container(
+              width: double.infinity,
+              padding: EdgeInsets.only(
+                top: topPadding + 10,
+                left: 20,
+                right: 20,
+                bottom: 40,
+              ),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color.fromARGB(188, 119, 201, 226),
+                    Color.fromARGB(255, 101, 180, 204),
+                    Color.fromARGB(255, 98, 175, 198),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                 ),
               ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.only(left: 10, right: 10),
-              child: const Trendchart(),
-            ),
-
-            Container(
-              padding: const EdgeInsets.all(16),
-              margin: const EdgeInsets.only(bottom: 100, left: 10, right: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Text(
+                    "Última medición",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                  const SizedBox(height: 5),
+                  const Text(
+                    "2.8",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 40,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        "15 Ene",
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                      SizedBox(width: 20),
+                      Text(
+                        "09:00",
+                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Column(
+                        children: [
+                          Text(
+                            "Mínimo",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            "2.0",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: 40),
+                      Column(
+                        children: [
+                          Text(
+                            "Máximo",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            "3.0",
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(10, 0, 10, 100),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children:
-                    historyData.asMap().entries.map((entry) {
-                      int i = entry.key;
-                      var data = entry.value;
-
-                      return AnimatedHistoryItem(
-                        index: i,
-                        item: HistoryItem(
-                          value: data['value'],
-                          date: data['date'],
-                          time: data['time'],
-                          trend: data['trend'],
+                children: [
+                  FadeTransition(
+                    opacity: _fadeAnimation,
+                    child: SlideTransition(
+                      position: _offsetAnimation,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: const [
+                          Expanded(
+                            child: StatBox(
+                              title: "Racha",
+                              value: "7 días",
+                              valueColor: Colors.black,
+                              isBold: true,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: StatBox(
+                              title: "Más alto",
+                              value: "3.1",
+                              valueColor: Colors.red,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: StatBox(
+                              title: "Más bajo",
+                              value: "2.4",
+                              valueColor: Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 30),
+                  const Trendchart(),
+                  const SizedBox(height: 20),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    margin: const EdgeInsets.only(bottom: 100),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12.withOpacity(0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
                         ),
-                      );
-                    }).toList(),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children:
+                          historyData
+                              .asMap()
+                              .entries
+                              .map(
+                                (entry) => AnimatedHistoryItem(
+                                  index: entry.key,
+                                  item: HistoryItem(
+                                    value: entry.value['value'],
+                                    date: entry.value['date'],
+                                    time: entry.value['time'],
+                                    trend: entry.value['trend'],
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
