@@ -28,24 +28,27 @@ class buildEstabilidadCard extends StatelessWidget {
           const SizedBox(height: 12),
 
           // Simulación de anillo
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: double.infinity,
-                height: 120,
-                child: CircularProgressIndicator(
-                  value: 0.75,
-                  strokeWidth: 10,
-                  backgroundColor: Colors.grey[200],
-                  color: Colors.green,
+          SizedBox(
+            height: 120, //
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 100,
+                  height: 100,
+                  child: CircularProgressIndicator(
+                    value: 0.75,
+                    strokeWidth: 8,
+                    backgroundColor: Colors.grey[200],
+                    color: Colors.green,
+                  ),
                 ),
-              ),
-              const Text(
-                '75%',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ],
+                const Text(
+                  '75%',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
 
           const SizedBox(height: 12),
