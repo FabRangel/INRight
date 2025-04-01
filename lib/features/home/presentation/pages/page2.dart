@@ -75,12 +75,16 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    Color.fromARGB(188, 119, 201, 226),
-                    Color.fromARGB(255, 101, 180, 204),
-                    Color.fromARGB(255, 98, 175, 198),
+                    Color.fromARGB(255, 191, 232, 238),
+                    Color.fromARGB(255, 98, 191, 228),
+                    Color.fromARGB(255, 114, 193, 224),
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(50),
+                  bottomRight: Radius.circular(50),
                 ),
               ),
               child: Column(
@@ -88,7 +92,7 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                 children: [
                   const Text(
                     "Última medición",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(color: Colors.white, fontSize: 20),
                   ),
                   const SizedBox(height: 5),
                   const Text(

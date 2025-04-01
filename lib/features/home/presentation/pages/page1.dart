@@ -32,13 +32,17 @@ class _Page1State extends State<Page1> {
             ),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 191, 232, 238),
+                  Color.fromARGB(255, 98, 191, 228),
+                  Color.fromARGB(255, 114, 193, 224),
+                ],
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
-                colors: [Color(0xFFB4D8E6), Color(0xFF8AC0CE)],
               ),
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(30),
-                bottomRight: Radius.circular(30),
+                bottomLeft: Radius.circular(50),
+                bottomRight: Radius.circular(50),
               ),
             ),
             child: Column(
@@ -50,7 +54,7 @@ class _Page1State extends State<Page1> {
                       child: Text(
                         'Análisis\nINR',
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 20,
                           color: Colors.white,
                           fontWeight: FontWeight.bold,
                         ),

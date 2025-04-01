@@ -13,28 +13,37 @@ class Page4 extends StatelessWidget {
         children: [
           ClipPath(
             clipper: _CurvedClipper(),
-            child: Container(height: 350, color: const Color(0xFF9AC6D5)),
+            child: Container(
+              height: 350,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color.fromARGB(255, 191, 232, 238),
+                    Color.fromARGB(255, 98, 191, 228),
+                    Color.fromARGB(255, 114, 193, 224),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(50),
+                  bottomRight: Radius.circular(50),
+                ),
+              ),
+            ),
           ),
 
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: const [
-                      Icon(Icons.arrow_back_ios_new, color: Colors.white),
-                      Icon(Icons.add, color: Colors.white),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
                   const Text(
                     'Registro de dosis',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 22,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

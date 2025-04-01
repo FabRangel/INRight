@@ -57,7 +57,7 @@ class _HomeState extends State<Navbar> {
         removeMargins: true,
         showShadow: true, // Agregar sombra
         shadowElevation: 20,
-        notchColor: Color.fromARGB(255, 98, 175, 198),
+        notchColor: Color.fromARGB(255, 114, 193, 224),
         durationInMilliSeconds: 300,
         kIconSize: 20.0,
 
@@ -112,7 +112,7 @@ class _HomeState extends State<Navbar> {
 
   Widget _buildActiveIcon(IconData icon) {
     return Container(
-      decoration: BoxDecoration(color: Color.fromARGB(255, 98, 175, 198)),
+      decoration: BoxDecoration(color: Color.fromARGB(255, 114, 193, 224)),
       child: Icon(icon, color: Colors.white, size: 25.0),
     );
   }
