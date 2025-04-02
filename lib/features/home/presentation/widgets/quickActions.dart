@@ -44,7 +44,7 @@ class QuickActionsWidget extends StatelessWidget {
                 children: [
                   _buildActionItem(
                     Icons.access_time,
-                    "Registrar\ndosis",
+                    "Ver mis\ndosis",
                     const Color.fromARGB(255, 204, 232, 255),
                   ),
                   _buildActionItem(
@@ -54,7 +54,7 @@ class QuickActionsWidget extends StatelessWidget {
                   ),
                   _buildActionItem(
                     Icons.calendar_today,
-                    "Siguiente\nprueba",
+                    "Nueva\nprueba",
                     const Color.fromARGB(255, 251, 255, 196),
                   ),
                 ],

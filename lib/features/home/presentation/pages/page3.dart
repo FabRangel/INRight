@@ -77,17 +77,6 @@ class Page3 extends StatelessWidget {
             ),
 
             const SizedBox(height: 10),
-            // Padding(
-            //   padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-            //   child: Row(
-            //     crossAxisAlignment: CrossAxisAlignment.start,
-            //     children: [
-            //       Expanded(child: InfoCard()),
-            //       SizedBox(width: screenWidth * 0.025),
-            //       Expanded(child: ChartCard()),
-            //     ],
-            //   ),
-            // ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
               child: Row(
