@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:inright/features/home/presentation/widgets/trendChart.dart';
 import 'package:inright/features/home/presentation/widgets/historyItem.dart';
 import 'package:inright/features/home/presentation/widgets/animatedHistoryItem.dart';
@@ -52,7 +53,6 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
   }
 
   @override
-  @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final topPadding = MediaQuery.of(context).padding.top;
@@ -60,194 +60,240 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 247, 247, 249),
-      body: Column(
+      body: Stack(
         children: [
-          ClipPath(
-            clipper: CustomWaveClipper(),
-            child: Container(
-              width: double.infinity,
-              padding: EdgeInsets.only(
-                top: topPadding + 10,
-                left: 20,
-                right: 20,
-                bottom: 40,
-              ),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color.fromARGB(255, 191, 232, 238),
-                    Color.fromARGB(255, 98, 191, 228),
-                    Color.fromARGB(255, 114, 193, 224),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(50),
-                  bottomRight: Radius.circular(50),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  const Text(
-                    "Última medición",
-                    style: TextStyle(color: Colors.white, fontSize: 20),
+          Column(
+            children: [
+              ClipPath(
+                clipper: CustomWaveClipper(),
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.only(
+                    top: topPadding + 10,
+                    left: 20,
+                    right: 20,
+                    bottom: 40,
                   ),
-                  const SizedBox(height: 5),
-                  const Text(
-                    "2.8",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 40,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "15 Ene",
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                      SizedBox(width: 20),
-                      Text(
-                        "09:00",
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Column(
-                        children: [
-                          Text(
-                            "Mínimo",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            "2.0",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(width: 40),
-                      Column(
-                        children: [
-                          Text(
-                            "Máximo",
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
-                          ),
-                          SizedBox(height: 2),
-                          Text(
-                            "3.0",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(10, 0, 10, 100),
-              child: Column(
-                children: [
-                  FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _offsetAnimation,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
-                          Expanded(
-                            child: StatBox(
-                              title: "Racha",
-                              value: "7 días",
-                              valueColor: Colors.black,
-                              isBold: true,
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: StatBox(
-                              title: "Más alto",
-                              value: "3.1",
-                              valueColor: Colors.red,
-                            ),
-                          ),
-                          SizedBox(width: 10),
-                          Expanded(
-                            child: StatBox(
-                              title: "Más bajo",
-                              value: "2.4",
-                              valueColor: Colors.green,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-                  const Trendchart(),
-                  const SizedBox(height: 20),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.only(bottom: 100),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black12.withOpacity(0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Color.fromARGB(255, 191, 232, 238),
+                        Color.fromARGB(255, 98, 191, 228),
+                        Color.fromARGB(255, 114, 193, 224),
                       ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children:
-                          historyData
-                              .asMap()
-                              .entries
-                              .map(
-                                (entry) => AnimatedHistoryItem(
-                                  index: entry.key,
-                                  item: HistoryItem(
-                                    value: entry.value['value'],
-                                    date: entry.value['date'],
-                                    time: entry.value['time'],
-                                    trend: entry.value['trend'],
-                                  ),
-                                ),
-                              )
-                              .toList(),
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(50),
+                      bottomRight: Radius.circular(50),
                     ),
                   ),
-                ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        "Última medición",
+                        style: TextStyle(color: Colors.white, fontSize: 20),
+                      ),
+                      const SizedBox(height: 5),
+                      const Text(
+                        "2.8",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "15 Ene",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(width: 20),
+                          Text(
+                            "09:00",
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Column(
+                            children: [
+                              Text(
+                                "Mínimo",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                "2.0",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(width: 40),
+                          Column(
+                            children: [
+                              Text(
+                                "Máximo",
+                                style: TextStyle(
+                                  color: Colors.white70,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                "3.0",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
+                  child: Column(
+                    children: [
+                      FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _offsetAnimation,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: const [
+                              Expanded(
+                                child: StatBox(
+                                  title: "Racha",
+                                  value: "7 días",
+                                  valueColor: Colors.black,
+                                  isBold: true,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: StatBox(
+                                  title: "Más alto",
+                                  value: "3.1",
+                                  valueColor: Colors.red,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: StatBox(
+                                  title: "Más bajo",
+                                  value: "2.4",
+                                  valueColor: Colors.green,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 30),
+                      const Trendchart(),
+                      const SizedBox(height: 20),
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.only(bottom: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black12.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children:
+                              historyData
+                                  .asMap()
+                                  .entries
+                                  .map(
+                                    (entry) => AnimatedHistoryItem(
+                                      index: entry.key,
+                                      item: HistoryItem(
+                                        value: entry.value['value'],
+                                        date: entry.value['date'],
+                                        time: entry.value['time'],
+                                        trend: entry.value['trend'],
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            bottom: 100,
+            right: 20,
+            child: FloatingActionButton(
+              onPressed: () {
+                showModalBottomSheet(
+                  isDismissible: true,
+                  enableDrag: true,
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(25),
+                    ),
+                  ),
+                  isScrollControlled: true,
+                  builder: (BuildContext context) {
+                    return Padding(
+                      padding: EdgeInsets.only(
+                        bottom: MediaQuery.of(context).viewInsets.bottom,
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                      ),
+                      child: const _AddInrForm(),
+                    );
+                  },
+                );
+              },
+
+              backgroundColor: const Color.fromARGB(255, 114, 193, 224),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: const Icon(Icons.add, size: 30, color: Colors.white),
             ),
           ),
         ],
@@ -323,6 +369,95 @@ class StatBox extends StatelessWidget {
               fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
               color: valueColor,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AddInrForm extends StatelessWidget {
+  const _AddInrForm({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 30),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black26,
+            blurRadius: 10,
+            offset: Offset(0, -3),
+          ),
+        ],
+      ),
+      // altura a la mitad de pantalla
+      height: MediaQuery.of(context).size.height * 0.5,
+      width: MediaQuery.of(context).size.width,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: MediaQuery.of(context).size.width * 0.2,
+              height: 5,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          const Center(
+            child: Text(
+              'Nuevo Registro de INR',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Color.fromARGB(255, 40, 68, 85),
+              ),
+            ),
+          ),
+          const SizedBox(height: 30),
+          TextField(
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            inputFormatters: [
+              FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+            ],
+            decoration: InputDecoration(
+              labelText: 'Valor de INR',
+              prefixIcon: const Icon(Icons.bloodtype),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(
+                      context,
+                    ).pop(); // Aquí puedes manejar el guardado
+                  },
+                  icon: const Icon(Icons.save),
+                  label: const Text('Guardar'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 98, 191, 228),
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    textStyle: const TextStyle(fontSize: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
