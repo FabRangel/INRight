@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:inright/features/auth/presentation/login_screen.dart';
+import 'package:inright/features/home/presentation/widgets/navbar.dart'; // 👈 Importa Navbar
 
 class Sidebar extends StatelessWidget {
   const Sidebar({Key? key}) : super(key: key);
@@ -23,12 +25,41 @@ class Sidebar extends StatelessWidget {
               ],
             ),
           ),
-          _buildSidebarItem(context, Icons.medication_outlined, 'Mis dosis'),
-          _buildSidebarItem(context, Icons.water_drop_outlined, 'Mis INRs'),
+          _buildSidebarItem(
+            context,
+            Icons.medication_outlined,
+            'Mis dosis',
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Navbar(initialPage: 3),
+                  ),
+                ),
+          ),
+          _buildSidebarItem(
+            context,
+            Icons.water_drop_outlined,
+            'Mis INRs',
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Navbar(initialPage: 1),
+                  ),
+                ),
+          ),
           _buildSidebarItem(
             context,
             Icons.notifications_active_outlined,
             'Recordatorios',
+            onPressed:
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const Navbar(initialPage: 4),
+                  ),
+                ),
           ),
           _buildSidebarItem(
             context,
@@ -36,19 +67,24 @@ class Sidebar extends StatelessWidget {
             'Configuraciones',
             onPressed: () => Navigator.pushNamed(context, '/configurations'),
           ),
+          const Divider(),
           _buildSidebarItem(
             context,
-            Icons.notifications_outlined,
-            'Notificaciones',
+            Icons.logout,
+            'Cerrar sesión',
+            onPressed: () {
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (context) => const LoginScreen()),
+                (Route<dynamic> route) =>
+                    false, // Elimina todas las rutas anteriores
+              );
+            },
           ),
-          Divider(),
-          _buildSidebarItem(context, Icons.logout, 'Cerrar sesión'),
         ],
       ),
     );
   }
 
-  // Función para construir los ítems del Sidebar
   static Widget _buildSidebarItem(
     BuildContext context,
     IconData icon,
@@ -59,8 +95,7 @@ class Sidebar extends StatelessWidget {
       leading: Icon(icon, color: Colors.black54),
       title: Text(title),
       onTap: () {
-        Navigator.pop(context); // Cierra el Sidebar
-        Navigator.pop(context); // Cierra el Sidebar
+        Navigator.pop(context); // Cierra el Drawer
         if (onPressed != null) {
           onPressed();
         }
