@@ -7,17 +7,24 @@ import 'package:inright/features/home/presentation/pages/page4.dart';
 import 'package:inright/features/home/presentation/pages/page5.dart';
 
 class Navbar extends StatefulWidget {
-  const Navbar({super.key});
+  final int initialPage;
+
+  const Navbar({super.key, this.initialPage = 2}); // 👈 por defecto, página 3
 
   @override
   State<Navbar> createState() => _HomeState();
 }
 
 class _HomeState extends State<Navbar> {
-  final _pageController = PageController(initialPage: 2);
-  final NotchBottomBarController _controller = NotchBottomBarController(
-    index: 2,
-  );
+  late final PageController _pageController;
+  late final NotchBottomBarController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: widget.initialPage);
+    _controller = NotchBottomBarController(index: widget.initialPage);
+  }
 
   @override
   void dispose() {
@@ -28,20 +35,14 @@ class _HomeState extends State<Navbar> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> bottomBarPages = [
-      const Page1(),
-      const Page2(),
-      const Page3(),
-      const Page4(),
+      Page1(),
+      Page2(),
+      Page3(),
+      Page4(),
       Page5(),
     ];
 
     return Scaffold(
-      // appBar: AppBar(
-      //   backgroundColor: Colors.transparent,
-      //   elevation: 0,
-      //   iconTheme: const IconThemeData(color: Colors.black87),
-      // ),
-      //drawer: _buildSidebar(), // Sidebar agregado
       body: PageView(
         controller: _pageController,
         physics: const NeverScrollableScrollPhysics(),
@@ -55,12 +56,11 @@ class _HomeState extends State<Navbar> {
         kBottomRadius: 40.0,
         bottomBarWidth: MediaQuery.of(context).size.width - 10,
         removeMargins: true,
-        showShadow: true, // Agregar sombra
+        showShadow: true,
         shadowElevation: 20,
-        notchColor: Color.fromARGB(255, 114, 193, 224),
+        notchColor: const Color.fromARGB(255, 114, 193, 224),
         durationInMilliSeconds: 300,
         kIconSize: 20.0,
-
         bottomBarItems: [
           BottomBarItem(
             inActiveItem: Icon(Icons.show_chart, color: Colors.grey.shade600),
@@ -96,23 +96,20 @@ class _HomeState extends State<Navbar> {
     );
   }
 
-  // Función para generar los ítems del Sidebar
   Widget _buildSidebarItem(IconData icon, String title, int pageIndex) {
     return ListTile(
       leading: Icon(icon, color: Colors.black54),
       title: Text(title),
       onTap: () {
-        Navigator.pop(context); // Cierra el Sidebar
-        _pageController.jumpToPage(
-          pageIndex,
-        ); // Navega a la página correspondiente
+        Navigator.pop(context);
+        _pageController.jumpToPage(pageIndex);
       },
     );
   }
 
   Widget _buildActiveIcon(IconData icon) {
     return Container(
-      decoration: BoxDecoration(color: Color.fromARGB(255, 114, 193, 224)),
+      decoration: const BoxDecoration(color: Color.fromARGB(255, 114, 193, 224)),
       child: Icon(icon, color: Colors.white, size: 25.0),
     );
   }

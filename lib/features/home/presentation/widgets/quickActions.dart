@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:inright/features/home/presentation/pages/page4.dart';
+import 'package:inright/features/home/presentation/widgets/addInrForm.dart'
+    show AddInrForm;
+import 'package:inright/features/home/presentation/widgets/navbar.dart';
 
 class QuickActionsWidget extends StatelessWidget {
   const QuickActionsWidget({Key? key}) : super(key: key);
@@ -46,16 +50,56 @@ class QuickActionsWidget extends StatelessWidget {
                     Icons.access_time,
                     "Ver mis\ndosis",
                     const Color.fromARGB(255, 204, 232, 255),
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Navbar(initialPage: 3),
+                        ),
+                      );
+                    },
                   ),
                   _buildActionItem(
                     Icons.remove_red_eye,
                     "Ver\ntendencia",
                     const Color.fromARGB(255, 217, 251, 220),
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Navbar(initialPage: 0),
+                        ),
+                      );
+                    },
                   ),
                   _buildActionItem(
                     Icons.calendar_today,
                     "Nueva\nprueba",
                     const Color.fromARGB(255, 251, 255, 196),
+                    () {
+                      showModalBottomSheet(
+                        isDismissible: true,
+                        enableDrag: true,
+                        context: context,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(25),
+                          ),
+                        ),
+                        isScrollControlled: true,
+                        builder: (BuildContext context) {
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: MediaQuery.of(context).viewInsets.bottom,
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                            ),
+                            child: const AddInrForm(),
+                          );
+                        },
+                      );
+                    },
                   ),
                 ],
               ),
@@ -66,21 +110,29 @@ class QuickActionsWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildActionItem(IconData icon, String text, Color color) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          child: Icon(icon, color: Colors.black, size: 18),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          text,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12, color: Colors.black54),
-        ),
-      ],
+  Widget _buildActionItem(
+    IconData icon,
+    String text,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap, // 👈 aquí ejecuta la navegación
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            child: Icon(icon, color: Colors.black, size: 18),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+        ],
+      ),
     );
   }
 }
