@@ -16,9 +16,51 @@ class Configurations extends StatefulWidget {
 class _ConfigurationsState extends State<Configurations> {
   int _selectedIndex = 0;
 
+  bool _alertaInr = true;
+  bool _recordatorioMed = true;
+  bool _valoresCriticos = true;
+  bool _push = true;
+  bool _email = false;
+  bool _sonido = true;
+  bool _vibracion = true;
+  final _minController = TextEditingController();
+  final _maxController = TextEditingController();
+  final _decimalRegex = RegExp(r'^\d*\.?\d*$');
+  TimeOfDay _notificationTime = TimeOfDay.now();
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index; // Actualizar el estado
+    });
+  }
+
+  void _showTopSnackBar(BuildContext context, String message) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        top: MediaQuery.of(context).padding.top + 20,
+        left: 20,
+        right: 20,
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.black87,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+    Future.delayed(const Duration(seconds: 2), () {
+      overlayEntry.remove();
     });
   }
 
@@ -102,14 +144,147 @@ class _ConfigurationsState extends State<Configurations> {
           ],
         );
       case 2: // Notificaciones
-        return const Center(
-          child: Text(
-            "Contenido de Notificaciones",
-            style: TextStyle(color: Colors.white),
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildCard(
+                title: "Tipos de alertas",
+                children: [
+                  _buildSwitch("Alertas de INR", "Notificaciones cuando los valores están fuera de rango", _alertaInr, (val) {
+                    setState(() => _alertaInr = val);
+                  }),
+                  _buildSwitch("Recordatorios de medicación", "Avisos para tomar tu medicación", _recordatorioMed, (val) {
+                    setState(() => _recordatorioMed = val);
+                  }),
+                  _buildSwitch("Valores críticos", "Alertas inmediatas para valores peligrosos", _valoresCriticos, (val) {
+                    setState(() => _valoresCriticos = val);
+                  }),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                title: "Método de notificación",
+                children: [
+                  _buildSwitch("Notificaciones push", "Alertas en tu dispositivo", _push, (val) {
+                    setState(() => _push = val);
+                  }),
+                  _buildSwitch("Correo electrónico", "Recibe alertas por email", _email, (val) {
+                    setState(() => _email = val);
+                  }),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildCard(
+                title: "Preferencias adicionales",
+                children: [
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text("Hora de notificaciones", style: TextStyle(fontSize: 16)),
+                              Text("Seleccionada: ${_notificationTime.format(context)}",
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.access_time),
+                          onPressed: () async {
+                            final TimeOfDay? picked = await showTimePicker(
+                              context: context,
+                              initialTime: _notificationTime,
+                            );
+                            if (picked != null && picked != _notificationTime) {
+                              setState(() {
+                                _notificationTime = picked;
+                              });
+                            }
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  _buildSwitch("Sonido de alerta", "Activar sonido en notificaciones", _sonido, (val) {
+                    setState(() => _sonido = val);
+                  }),
+                  _buildSwitch("Vibración", "Activar vibración en notificaciones", _vibracion, (val) {
+                    setState(() => _vibracion = val);
+                  }),
+                ],
+              ),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  final config = {
+                    "alertasINR": _alertaInr,
+                    "recordatoriosMed": _recordatorioMed,
+                    "valoresCriticos": _valoresCriticos,
+                    "notificacionesPush": _push,
+                    "correoElectronico": _email,
+                    "sonido": _sonido,
+                    "vibracion": _vibracion,
+                    "horaNotificacion": _notificationTime.format(context),
+                  };
+
+                  print("🧾 Configuración guardada: ${config}");
+
+                  _showTopSnackBar(context, "🎉 ¡Felicidades! Se guardaron tus configuraciones");
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF78C8C9),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text("Guardar configuración"),
+              ),
+            ],
           ),
         );
       default:
         return const SizedBox.shrink();
     }
+  }
+
+  Widget _buildCard({required String title, required List<Widget> children}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.15),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitch(String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
+    return SwitchListTile(
+      title: Text(title),
+      subtitle: Text(subtitle),
+      value: value,
+      onChanged: onChanged,
+      contentPadding: EdgeInsets.zero,
+      activeColor: const Color(0xFF65B0C6),
+      activeTrackColor: const Color(0xFF65B0C6).withOpacity(0.5),
+    );
   }
 }
