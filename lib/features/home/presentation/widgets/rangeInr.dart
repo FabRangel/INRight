@@ -34,7 +34,7 @@ class _RangeInrState extends State<RangeInr> {
               const Text(
                 "Rango INR objetivo",
                 style: TextStyle(
-                  fontSize: 25,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),

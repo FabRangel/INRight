@@ -21,25 +21,23 @@ class MedicationTimeWidget extends StatelessWidget {
       child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
             children: [
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Horario de medicación",
-                    style: TextStyle(
-                      fontSize: 25,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
+              Text(
+                "Horario de medicación",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
-              const SizedBox(width: 15),
-              const Icon(
-                Icons.add, // Puedes cambiarlo por otro ícono si prefieres
-                size: 25, // Tamaño grande
+              IconButton(
+                icon: const Icon(Icons.add, size: 25),
                 color: Colors.black87,
+                onPressed: () {
+                  // Acción para editar
+                },
               ),
             ],
           ),

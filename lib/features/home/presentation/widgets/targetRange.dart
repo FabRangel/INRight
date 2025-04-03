@@ -36,7 +36,7 @@ class TargetRangeWidget extends StatelessWidget {
                   Text(
                     "Sintrom",
                     style: TextStyle(
-                      fontSize: 25,
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
