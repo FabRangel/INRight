@@ -25,8 +25,14 @@ class _ConfigurationsState extends State<Configurations> {
   bool _vibracion = true;
   final _minController = TextEditingController();
   final _maxController = TextEditingController();
+  final _condicionController = TextEditingController();
   final _decimalRegex = RegExp(r'^\d*\.?\d*$');
   TimeOfDay _notificationTime = TimeOfDay.now();
+  double _peso = 60;
+  double _altura = 165;
+  String _grupoSanguineo = "A+";
+  List<String> _condicionesMedicas = ["Fibrilación auricular"];
+  RangeValues _inrRange = const RangeValues(2.0, 3.0);
 
   void _onItemTapped(int index) {
     setState(() {
@@ -72,57 +78,46 @@ class _ConfigurationsState extends State<Configurations> {
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 247, 247, 249),
-      body: SingleChildScrollView(
-        child: Stack(
-          children: [
-            // Fondo con gradiente
-            Container(
-              width: double.infinity,
-              height: screenHeight * 0.4, // Altura del fondo
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Color.fromARGB(255, 191, 232, 238),
-                    Color.fromARGB(255, 98, 191, 228),
-                    Color.fromARGB(255, 114, 193, 224),
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(50),
-                  bottomRight: Radius.circular(50),
-                ),
+      body: Column(
+        children: [
+          Container(
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color.fromARGB(255, 191, 232, 238),
+                  Color.fromARGB(255, 98, 191, 228),
+                  Color.fromARGB(255, 114, 193, 224),
+                ],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(50),
+                bottomRight: Radius.circular(50),
               ),
             ),
-
-            // Contenido principal
-            Column(
-              children: [
-                // AppBarNotifications
-                Padding(
-                  padding: EdgeInsets.only(
-                    top: topPadding,
-                    left: screenWidth * 0.05,
-                    right: screenWidth * 0.05,
-                  ),
-                  child: AppBarNotifications(
-                    onItemTapped: _onItemTapped, // Pasar el callback
-                  ),
-                ),
-
-                // Espacio entre AppBarNotifications y el contenido dinámico
-                SizedBox(height: screenHeight * 0.05),
-
-                // Contenido dinámico
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: screenWidth * 0.05),
-                  child: _buildContent(),
-                ),
-              ],
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 16,
+              bottom: 20,
+              left: screenWidth * 0.05,
+              right: screenWidth * 0.05,
             ),
-          ],
-        ),
+            child: AppBarNotifications(
+              onItemTapped: _onItemTapped,
+            ),
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.only(
+                top: 24,
+                left: screenWidth * 0.05,
+                right: screenWidth * 0.05,
+              ),
+              child: _buildContent(),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -131,15 +126,314 @@ class _ConfigurationsState extends State<Configurations> {
   Widget _buildContent() {
     switch (_selectedIndex) {
       case 0:
-        return const PacientCardWidget();
+        return Container(
+          margin: const EdgeInsets.only(bottom: 24),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Stack(
+                    children: [
+                      const CircleAvatar(
+                        radius: 40,
+                        backgroundImage: AssetImage("assets/images/persona.jpg"),
+                      ),
+                      Positioned(
+                        bottom: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white,
+                          ),
+                          padding: const EdgeInsets.all(4),
+                          child: const Icon(Icons.camera_alt, size: 16),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: const [
+                      Text("María García", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 4),
+                      Text("Maria@gmail.com", style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              // Peso y condiciones médicas
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Peso (kg)", style: TextStyle(fontSize: 14)),
+                        const SizedBox(height: 16),
+                        TextField(
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: "Peso (kg)",
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (val) {
+                            setState(() {
+                              _peso = double.tryParse(val) ?? _peso;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Condiciones médicas", style: TextStyle(fontSize: 14)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            for (var condition in _condicionesMedicas)
+                              Chip(
+                                label: Text(condition, style: const TextStyle(color: Colors.blue)),
+                                onDeleted: () {
+                                  setState(() => _condicionesMedicas.remove(condition));
+                                },
+                              ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: TextField(
+                                controller: _condicionController,
+                                decoration: const InputDecoration(
+                                  hintText: "+ Añadir condición",
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () {
+                                final val = _condicionController.text;
+                                if (val.isNotEmpty) {
+                                  setState(() {
+                                    _condicionesMedicas.add(val);
+                                    _condicionController.clear();
+                                  });
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF65B0C6),
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                              ),
+                              child: const Text("Añadir"),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              // Altura y grupo sanguíneo
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Altura (cm)", style: TextStyle(fontSize: 14)),
+                        const SizedBox(height: 16),
+                        TextField(
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(
+                            labelText: "Altura (cm)",
+                            border: OutlineInputBorder(),
+                          ),
+                          onChanged: (val) {
+                            setState(() {
+                              _altura = double.tryParse(val) ?? _altura;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Grupo sanguíneo", style: TextStyle(fontSize: 14)),
+                        const SizedBox(height: 8),
+                        DropdownButtonFormField<String>(
+                          value: _grupoSanguineo,
+                          decoration: const InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                          ),
+                          items: const [
+                            DropdownMenuItem(value: "A+", child: Text("A+")),
+                            DropdownMenuItem(value: "A-", child: Text("A-")),
+                            DropdownMenuItem(value: "B+", child: Text("B+")),
+                            DropdownMenuItem(value: "B-", child: Text("B-")),
+                            DropdownMenuItem(value: "AB+", child: Text("AB+")),
+                            DropdownMenuItem(value: "AB-", child: Text("AB-")),
+                            DropdownMenuItem(value: "O+", child: Text("O+")),
+                            DropdownMenuItem(value: "O-", child: Text("O-")),
+                          ],
+                          onChanged: (val) {
+                            setState(() => _grupoSanguineo = val!);
+                          },
+                        ),
+                     ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: () {
+                  final perfilData = {
+                    "peso": _peso.toStringAsFixed(0),
+                    "altura": _altura.toStringAsFixed(0),
+                    "grupoSanguineo": _grupoSanguineo,
+                    "condicionesMedicas": _condicionesMedicas,
+                  };
+
+                  _showTopSnackBar(context, "🎉 ¡Felicidades! Se guardaron los datos: $perfilData");
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF78C8C9),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                child: const Text("Guardar configuración"),
+              ),
+            ],
+          ),
+        );
       case 1:
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const TargetRangeWidget(),
-            const SizedBox(height: 20),
-            const MedicationTimeWidget(),
-            const SizedBox(height: 20),
-            const RangeInr(),
+            _buildCard(
+              title: "Sintróm",
+              children: [
+                const Text("4 mg", style: TextStyle(fontSize: 16)),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text("Rango objetivo", style: TextStyle(fontSize: 14)),
+                    Text("Último INR", style: TextStyle(fontSize: 14)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: const [
+                    Text("2 - 3", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    Text("2.8", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildCard(
+              title: "Horario de medicación",
+              children: [
+                _buildMedicationTimeRow("09:00", "4 mg"),
+                const SizedBox(height: 12),
+                _buildMedicationTimeRow("21:00", "4 mg"),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: const Icon(Icons.add, color: Colors.black87),
+                    onPressed: () {},
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            _buildCard(
+              title: "Rango INR objetivo",
+              children: [
+                const Text("Rango actual", style: TextStyle(fontSize: 14)),
+                const SizedBox(height: 12),
+                 Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     Text("Rango: ${_inrRange.start.toStringAsFixed(1)} - ${_inrRange.end.toStringAsFixed(1)}",
+                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                     RangeSlider(
+                       values: _inrRange,
+                       min: 1.0,
+                       max: 5.0,
+                       divisions: 40,
+                       labels: RangeLabels(
+                         _inrRange.start.toStringAsFixed(1),
+                         _inrRange.end.toStringAsFixed(1),
+                       ),
+                       onChanged: (RangeValues values) {
+                         setState(() {
+                           _inrRange = values;
+                         });
+                       },
+                       activeColor: Colors.green,
+                       inactiveColor: Colors.green.shade100,
+                     ),
+                   ],
+                 ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                final medicacionData = {
+                  "horarios": [
+                    {"hora": "09:00", "dosis": "4 mg"},
+                    {"hora": "21:00", "dosis": "4 mg"},
+                  ],
+                  "rangoINR": {
+                    "min": _inrRange.start.toStringAsFixed(1),
+                    "max": _inrRange.end.toStringAsFixed(1),
+                  }
+                };
+                _showTopSnackBar(context, "🎉 ¡Felicidades! Se guardaron los datos de medicación: $medicacionData");
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF78C8C9),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+              child: const Text("Guardar configuración"),
+            ),
             const SizedBox(height: 90),
           ],
         );
@@ -219,11 +513,12 @@ class _ConfigurationsState extends State<Configurations> {
                 ],
               ),
               const SizedBox(height: 16),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
-                  final config = {
-                    "alertasINR": _alertaInr,
-                    "recordatoriosMed": _recordatorioMed,
+                  final notificacionesData = {
+                    "alertaINR": _alertaInr,
+                    "recordatorioMed": _recordatorioMed,
                     "valoresCriticos": _valoresCriticos,
                     "notificacionesPush": _push,
                     "correoElectronico": _email,
@@ -231,10 +526,8 @@ class _ConfigurationsState extends State<Configurations> {
                     "vibracion": _vibracion,
                     "horaNotificacion": _notificationTime.format(context),
                   };
-
-                  print("🧾 Configuración guardada: ${config}");
-
-                  _showTopSnackBar(context, "🎉 ¡Felicidades! Se guardaron tus configuraciones");
+ 
+                  _showTopSnackBar(context, "🎉 ¡Felicidades! Se guardaron los datos de notificaciones: $notificacionesData");
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF78C8C9),
@@ -285,6 +578,58 @@ class _ConfigurationsState extends State<Configurations> {
       contentPadding: EdgeInsets.zero,
       activeColor: const Color(0xFF65B0C6),
       activeTrackColor: const Color(0xFF65B0C6).withOpacity(0.5),
+    );
+  }
+
+  Widget _buildInputField(String label, String hint, {String? suffix}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 14)),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF5F7FA),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(hint, style: const TextStyle(color: Colors.black87)),
+              ),
+              if (suffix != null)
+                Text(suffix, style: const TextStyle(color: Colors.grey)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+  
+  Widget _buildMedicationTimeRow(String time, String dose) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF3F6FD),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.access_time, size: 20),
+          const SizedBox(width: 12),
+          Text(time, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(width: 12),
+          Text(dose),
+          const Spacer(),
+          IconButton(onPressed: () {}, icon: const Icon(Icons.edit)),
+          IconButton(
+            onPressed: () {},
+            icon: const Icon(Icons.close),
+            color: Colors.redAccent,
+          ),
+        ],
+      ),
     );
   }
 }

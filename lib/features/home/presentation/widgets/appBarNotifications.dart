@@ -27,47 +27,35 @@ class AppBarNotificationsState extends State<AppBarNotifications> {
       children: [
         const SizedBox(height: 20),
         IconButton(
-          icon: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFFF7F7F9), // Color #F7F7F9
-            ),
-            child: const Center(
-              child: Text(
-                "<",
-                style: TextStyle(
-                  color: Colors.black, // Color del ícono
-                  fontSize: 18,
-                ),
-              ),
-            ),
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Colors.white,
+            size: 36,
           ),
           onPressed: () {
             Navigator.pushNamed(context, '/home');
           },
         ),
         const SizedBox(height: 10),
-        Padding(
-          padding: const EdgeInsets.only(left: 15.0),
+        const Padding(
+          padding: EdgeInsets.only(left: 15.0, bottom: 10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 "Configuración",
                 style: TextStyle(
-                  color: Colors.white, // Color del texto
-                  fontSize: 22,
+                  color: Colors.white,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 10), // Espacio entre los textos
-              const Text(
+              SizedBox(height: 6),
+              Text(
                 "Personaliza tu experiencia",
                 style: TextStyle(
-                  color: Colors.white, // Color del texto
-                  fontSize: 16,
+                  color: Colors.white70,
+                  fontSize: 15,
                 ),
               ),
             ],
