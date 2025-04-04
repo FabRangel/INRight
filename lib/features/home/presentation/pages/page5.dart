@@ -14,11 +14,11 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   final List<Map<String, dynamic>> registerData = [
-    {"value": "4 mg", "date": "mañana", "time": "09:00", "trend": "neutral"},
-    // {"value": 2.8, "date": "01 Ene", "time": "09:15", "trend": "neutral"},
-    // {"value": 2.5, "date": "15 Dic", "time": "08:45", "trend": "down"},
-    // {"value": 3.1, "date": "01 Dic", "time": "09:30", "trend": "up"},
-    // {"value": 2.4, "date": "15 Nov", "time": "09:20", "trend": "neutral"},
+    {"value": "4 mg", "date": "Mañana", "time": "09:00", "trend": "check"},
+    {"value": "4 mg", "date": "Noche", "time": "21:00", "trend": "wait"},
+    {"value": "4 mg", "date": "Mañana", "time": "09:00", "trend": "check"},
+    {"value": "4 mg", "date": "Mañana", "time": "09:00", "trend": "check"},
+    {"value": "4 mg", "date": "Mañana", "time": "09:00", "trend": "check"},
   ];
 
   @override
@@ -198,12 +198,52 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
                               ],
                             ),
                             const SizedBox(height: 16),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 8.0, bottom: 8.0),
+                              child: Text(
+                                "Hoy",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
                             ...registerData
+                                .sublist(0, 2)
                                 .asMap()
                                 .entries
                                 .map(
                                   (entry) => AnimatedRegisterItem(
                                     index: entry.key,
+                                    item: RegisterItem(
+                                      value: entry.value['value'],
+                                      date: entry.value['date'],
+                                      time: entry.value['time'],
+                                      trend: entry.value['trend'],
+                                    ),
+                                  ),
+                                )
+                                .toList(),
+                            const SizedBox(height: 16),
+                            const Padding(
+                              padding: EdgeInsets.only(left: 8.0, bottom: 8.0),
+                              child: Text(
+                                "Ayer",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ),
+                            ...registerData
+                                .sublist(2)
+                                .asMap()
+                                .entries
+                                .map(
+                                  (entry) => AnimatedRegisterItem(
+                                    index: entry.key + 2,
                                     item: RegisterItem(
                                       value: entry.value['value'],
                                       date: entry.value['date'],

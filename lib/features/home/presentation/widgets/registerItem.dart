@@ -16,22 +16,26 @@ class RegisterItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isTomorrow = value == "Mañana";
-    final isNight = value == "Noche";
+    final isCheck = trend == "check";
+    final isWait = trend == "wait";
 
     final bgColor =
-        isTomorrow ? const Color(0xFFFFEBEB) : const Color(0xFFEAFBF0);
+        isCheck
+            ? const Color(0xFFEAFBF0)
+            : const Color.fromARGB(255, 254, 254, 224);
 
-    final iconBg = isNight ? const Color(0xFFFFE1E1) : const Color(0xFFDFF7E8);
+    final iconBg = isWait ? Colors.yellow.shade100 : const Color(0xFFDFF7E8);
+
+    final textBg = isWait ? Colors.yellow.shade700 : Colors.green;
 
     final icon =
-        trend == 'up'
-            ? Icons.arrow_upward
-            : trend == 'down'
-            ? Icons.arrow_downward
+        trend == 'check'
+            ? Icons.check_outlined
+            : trend == 'wait'
+            ? Icons.access_time
             : Icons.remove;
 
-    final valueColor = isTomorrow ? Colors.yellow : Colors.green;
+    final valueColor = Colors.black;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -67,10 +71,7 @@ class RegisterItem extends StatelessWidget {
             ],
           ),
           const Spacer(),
-          Text(
-            time,
-            style: const TextStyle(fontSize: 13, color: Colors.black54),
-          ),
+          Text(time, style: TextStyle(fontSize: 13, color: textBg)),
         ],
       ),
     );
