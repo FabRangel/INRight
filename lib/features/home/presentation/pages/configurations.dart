@@ -515,14 +515,19 @@ class _ConfigurationsState extends State<Configurations> {
                     onPressed: () {
                       setState(() {
                         if (_modoEdicionAnticoagulante) {
-                          // ✅ Mostrar confirmación
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text(
-                                "Actualizado: $_anticoagulante - ${_dosis.toStringAsFixed(2)} mg",
+                              content: AwesomeSnackbarContent(
+                                title: "¡Éxito!",
+                                message:
+                                    "Actualizado: $_anticoagulante - ${_dosis.toStringAsFixed(2)} mg",
+                                color: Colors.green,
+                                contentType: ContentType.success,
                               ),
-                              backgroundColor: Colors.green,
+                              backgroundColor: Colors.transparent,
                               duration: const Duration(seconds: 2),
+                              elevation: 0,
+                              behavior: SnackBarBehavior.floating,
                             ),
                           );
                         }
@@ -617,10 +622,17 @@ class _ConfigurationsState extends State<Configurations> {
                                   });
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                      content: Text(
-                                        "Hora actualizada a ${horario["hora"]}",
+                                      content: AwesomeSnackbarContent(
+                                        title: "¡Éxito!",
+                                        message:
+                                            "Horario guardado: ${horario["hora"]} - ${horario["dosis"]}",
+                                        color: Colors.green,
+                                        contentType: ContentType.success,
                                       ),
-                                      backgroundColor: Colors.green,
+                                      backgroundColor: Colors.transparent,
+                                      duration: const Duration(seconds: 2),
+                                      elevation: 0,
+                                      behavior: SnackBarBehavior.floating,
                                     ),
                                   );
                                 } else {
@@ -655,6 +667,10 @@ class _ConfigurationsState extends State<Configurations> {
                                   context: context,
                                   builder: (BuildContext context) {
                                     return AlertDialog(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      backgroundColor: Colors.white,
                                       title: const Text(
                                         "Confirmar eliminación",
                                       ),
@@ -663,7 +679,12 @@ class _ConfigurationsState extends State<Configurations> {
                                       ),
                                       actions: [
                                         TextButton(
-                                          child: const Text("Cancelar"),
+                                          child: const Text(
+                                            "Cancelar",
+                                            style: TextStyle(
+                                              color: Colors.blueAccent,
+                                            ),
+                                          ),
                                           onPressed: () {
                                             Navigator.of(
                                               context,
@@ -686,11 +707,20 @@ class _ConfigurationsState extends State<Configurations> {
                                               context,
                                             ).showSnackBar(
                                               const SnackBar(
-                                                content: Text(
-                                                  "Horario eliminado",
+                                                content: AwesomeSnackbarContent(
+                                                  title: "¡Éxito!",
+                                                  message:
+                                                      "Horario eliminado correctamente",
+                                                  contentType:
+                                                      ContentType.success,
+                                                  color: Colors.redAccent,
+                                                  inMaterialBanner: true,
                                                 ),
                                                 backgroundColor:
-                                                    Colors.redAccent,
+                                                    Colors.transparent,
+                                                behavior:
+                                                    SnackBarBehavior.floating,
+                                                elevation: 0,
                                                 duration: Duration(seconds: 2),
                                               ),
                                             );
