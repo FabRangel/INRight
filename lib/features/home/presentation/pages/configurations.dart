@@ -1,3 +1,4 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:inright/features/home/presentation/widgets/medicationTime.dart';
 import 'package:inright/features/home/presentation/widgets/pacientCard.dart';
@@ -56,38 +57,62 @@ class _ConfigurationsState extends State<Configurations> {
     });
   }
 
-  void _showTopSnackBar(BuildContext context, String message) {
-    final overlay = Overlay.of(context);
-    final overlayEntry = OverlayEntry(
-      builder:
-          (context) => Positioned(
-            top: MediaQuery.of(context).padding.top + 20,
-            left: 20,
-            right: 20,
-            child: Material(
-              color: Colors.transparent,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.black87,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  message,
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          ),
+  // void _showTopSnackBar(
+  //   BuildContext context,
+  //   String title,
+  //   String message,
+  //   ContentType type,
+  //   Color color,
+  // ) {
+  //   final overlay = Overlay.of(context);
+  //   final overlayEntry = OverlayEntry(
+  //     builder:
+  //         (context) => Positioned(
+  //           top: MediaQuery.of(context).padding.bottom + 20,
+  //           left: 20,
+  //           right: 20,
+  //           child: Material(
+  //             color: color,
+  //             child: AwesomeSnackbarContent(
+  //               title: title,
+  //               message: message,
+  //               contentType: type,
+  //               inMaterialBanner: true,
+  //             ),
+  //           ),
+  //         ),
+  //   );
+
+  //   overlay.insert(overlayEntry);
+
+  //   Future.delayed(const Duration(seconds: 3), () {
+  //     overlayEntry.remove();
+  //   });
+  // }
+
+  void _showTopSnackBar(
+    BuildContext context,
+    String title,
+    String message,
+    ContentType type,
+    Color color,
+  ) {
+    final snackBar = SnackBar(
+      elevation: 0,
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.transparent,
+      content: AwesomeSnackbarContent(
+        title: title,
+        message: message,
+        contentType: type,
+        color: color,
+        inMaterialBanner: true,
+      ),
     );
 
-    overlay.insert(overlayEntry);
-    Future.delayed(const Duration(seconds: 2), () {
-      overlayEntry.remove();
-    });
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(snackBar);
   }
 
   @override
@@ -402,7 +427,10 @@ class _ConfigurationsState extends State<Configurations> {
 
                     _showTopSnackBar(
                       context,
-                      "🎉 ¡Felicidades! Se guardaron los datos: $perfilData",
+                      "!Éxito!",
+                      "¡Felicidades! Se guardaron los datos: $perfilData",
+                      ContentType.success,
+                      Colors.green,
                     );
                   },
                   style: ElevatedButton.styleFrom(
@@ -750,7 +778,10 @@ class _ConfigurationsState extends State<Configurations> {
                 };
                 _showTopSnackBar(
                   context,
-                  "🎉 ¡Felicidades! Se guardaron los datos de medicación: $medicacionData",
+                  "¡Éxito!",
+                  "¡Felicidades! Se guardaron los datos de medicación: $medicacionData",
+                  ContentType.success,
+                  Colors.green,
                 );
               },
               style: ElevatedButton.styleFrom(
@@ -906,7 +937,10 @@ class _ConfigurationsState extends State<Configurations> {
 
                   _showTopSnackBar(
                     context,
-                    "🎉 ¡Felicidades! Se guardaron los datos de notificaciones: $notificacionesData",
+                    "¡Éxito!",
+                    "¡Felicidades! Se guardaron los datos de notificaciones: $notificacionesData",
+                    ContentType.success,
+                    Colors.green,
                   );
                 },
                 style: ElevatedButton.styleFrom(

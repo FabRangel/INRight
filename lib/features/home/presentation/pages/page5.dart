@@ -1,3 +1,4 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:inright/features/home/presentation/widgets/animatedRegisterItem.dart';
@@ -23,7 +24,27 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
   bool hasNotified = false; // Para evitar notificación duplicada
 
   final List<Map<String, dynamic>> registerData = [
-    {"value": "4 mg", "period": "Mañana", "time": "09:00", "taken": false},
+    {
+      "value": "4 mg",
+      "period": "Mañana",
+      "time": "09:00",
+      "taken": false,
+      "date": DateTime.now(), // Hoy
+    },
+    {
+      "value": "4 mg",
+      "period": "Mañana",
+      "time": "09:00",
+      "taken": true,
+      "date": DateTime.now().subtract(const Duration(days: 1)), // Ayer
+    },
+    {
+      "value": "4 mg",
+      "period": "Noche",
+      "time": "21:00",
+      "taken": true,
+      "date": DateTime.now().subtract(const Duration(days: 2)), // Antier
+    },
   ];
 
   @override
@@ -105,6 +126,18 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
     final String doseTime = registerData.first['time'];
     final String doseValue = registerData.first['value'];
     final String message = getDoseMessage(doseTime);
+
+    Map<String, List<Map<String, dynamic>>> groupedData = {};
+
+    for (var item in registerData) {
+      final DateTime date = item['date'] ?? DateTime.now();
+
+      final String key = _getRelativeDateLabel(date); // Hoy, Ayer, etc.
+      if (!groupedData.containsKey(key)) {
+        groupedData[key] = [];
+      }
+      groupedData[key]!.add(item);
+    }
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 247, 247, 249),
@@ -261,8 +294,21 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
                           Center(
                             child: ElevatedButton(
                               onPressed: () {
-                                // Aquí puedes agregar la acción para confirmar
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    elevation: 0,
+                                    behavior: SnackBarBehavior.floating,
+                                    backgroundColor: Colors.transparent,
+                                    content: AwesomeSnackbarContent(
+                                      title: 'Error',
+                                      message:
+                                          'No se pudo registrar la toma. Intenta de nuevo.',
+                                      contentType: ContentType.failure,
+                                    ),
+                                  ),
+                                );
                               },
+
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.white,
                                 foregroundColor:
@@ -329,88 +375,107 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
                               ],
                             ),
                             const SizedBox(height: 10),
-                            const Text(
-                              "Hoy",
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.black54,
-                              ),
-                            ),
+
                             const SizedBox(height: 12),
-                            ...registerData.map((item) {
-                              final bool isTaken =
-                                  (item['taken'] ?? false) as bool;
+                            ...groupedData.entries.map((entry) {
+                              final label = entry.key;
+                              final items = entry.value;
 
-                              final bgColor =
-                                  isTaken
-                                      ? const Color(0xFFE7F8EB)
-                                      : const Color.fromARGB(
-                                        255,
-                                        255,
-                                        230,
-                                        225,
-                                      );
-                              final icon =
-                                  isTaken ? Icons.check : Icons.access_time;
-                              final iconColor =
-                                  isTaken ? Colors.green : Colors.redAccent;
-                              final timeColor =
-                                  isTaken ? Colors.green : Colors.redAccent;
-
-                              return Container(
-                                margin: const EdgeInsets.only(bottom: 12),
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 14,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: bgColor,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Row(
-                                  children: [
-                                    CircleAvatar(
-                                      radius: 16,
-                                      backgroundColor: Colors.white,
-                                      child: Icon(
-                                        icon,
-                                        color: iconColor,
-                                        size: 20,
-                                      ),
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    label,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.black54,
                                     ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                  ),
+                                  const SizedBox(height: 10),
+                                  ...items.map((item) {
+                                    final bool isTaken =
+                                        (item['taken'] ?? false) as bool;
+                                    final bgColor =
+                                        isTaken
+                                            ? const Color(0xFFE7F8EB)
+                                            : const Color.fromARGB(
+                                              255,
+                                              255,
+                                              230,
+                                              225,
+                                            );
+                                    final icon =
+                                        isTaken
+                                            ? Icons.check
+                                            : Icons.access_time;
+                                    final iconColor =
+                                        isTaken
+                                            ? Colors.green
+                                            : Colors.redAccent;
+                                    final timeColor =
+                                        isTaken
+                                            ? Colors.green
+                                            : Colors.redAccent;
+
+                                    return Container(
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 14,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: bgColor,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Row(
                                         children: [
-                                          Text(
-                                            item['value'],
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                              fontSize: 16,
+                                          CircleAvatar(
+                                            radius: 16,
+                                            backgroundColor: Colors.white,
+                                            child: Icon(
+                                              icon,
+                                              color: iconColor,
+                                              size: 20,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  item['value'],
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 16,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  item['period'],
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    color: Colors.black54,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
                                           ),
                                           Text(
-                                            item['period'],
-                                            style: const TextStyle(
+                                            item['time'],
+                                            style: TextStyle(
                                               fontSize: 14,
-                                              color: Colors.black54,
+                                              fontWeight: FontWeight.w500,
+                                              color: timeColor,
                                             ),
                                           ),
                                         ],
                                       ),
-                                    ),
-                                    Text(
-                                      item['time'],
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w500,
-                                        color: timeColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                    );
+                                  }),
+                                  const SizedBox(height: 16),
+                                ],
                               );
                             }),
                           ],
@@ -466,4 +531,14 @@ class CustomWaveClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) => false;
+}
+
+String _getRelativeDateLabel(DateTime date) {
+  final now = DateTime.now();
+  final difference = now.difference(date).inDays;
+
+  if (difference == 0) return "Hoy";
+  if (difference == 1) return "Ayer";
+  if (difference == 2) return "Antier";
+  return "${date.day}/${date.month}/${date.year}";
 }

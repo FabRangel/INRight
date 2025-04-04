@@ -1,3 +1,4 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:inright/features/home/presentation/widgets/addInrForm.dart';
@@ -274,8 +275,8 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
             bottom: 100,
             right: 20,
             child: FloatingActionButton(
-              onPressed: () {
-                showModalBottomSheet(
+              onPressed: () async {
+                final resultado = await showModalBottomSheet(
                   isDismissible: true,
                   enableDrag: true,
                   context: context,
@@ -289,16 +290,30 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                     return Padding(
                       padding: EdgeInsets.only(
                         bottom: MediaQuery.of(context).viewInsets.bottom,
-                        top: 0,
-                        left: 0,
-                        right: 0,
                       ),
                       child: const AddInrForm(),
                     );
                   },
                 );
-              },
 
+                if (resultado == "guardado") {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      elevation: 0,
+                      behavior: SnackBarBehavior.floating,
+                      backgroundColor: Colors.transparent,
+                      content: AwesomeSnackbarContent(
+                        title: '¡Listo!',
+                        color: Colors.green,
+                        message:
+                            'El valor de INR fue registrado correctamente.',
+                        contentType: ContentType.success,
+                        inMaterialBanner: true,
+                      ),
+                    ),
+                  );
+                }
+              },
               backgroundColor: const Color.fromARGB(255, 114, 193, 224),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),

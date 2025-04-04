@@ -19,7 +19,6 @@ class AddInrForm extends StatelessWidget {
           ),
         ],
       ),
-      // altura a la mitad de pantalla
       height: MediaQuery.of(context).size.height * 0.5,
       width: MediaQuery.of(context).size.width,
       child: Column(
@@ -66,16 +65,20 @@ class AddInrForm extends StatelessWidget {
               Expanded(
                 child: ElevatedButton.icon(
                   onPressed: () {
-                    Navigator.of(
-                      context,
-                    ).pop(); // Aquí puedes manejar el guardado
+                    Navigator.of(context).pop("guardado");
                   },
                   icon: const Icon(Icons.save),
                   label: const Text('Guardar'),
                   style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    iconColor: Colors.white,
                     backgroundColor: const Color.fromARGB(255, 98, 191, 228),
                     padding: const EdgeInsets.symmetric(vertical: 15),
-                    textStyle: const TextStyle(fontSize: 16),
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
