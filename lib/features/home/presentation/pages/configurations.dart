@@ -33,6 +33,22 @@ class _ConfigurationsState extends State<Configurations> {
   String _grupoSanguineo = "A+";
   List<String> _condicionesMedicas = ["Fibrilación auricular"];
   RangeValues _inrRange = const RangeValues(2.0, 3.0);
+  bool _modoEdicionAnticoagulante = false;
+  String _anticoagulante = "Sintróm";
+  double _dosis = 4;
+  final List<String> _anticoagulantesDisponibles = [
+    "Sintróm",
+    "Warfarina",
+    "Acenocumarol",
+    "Dabigatrán",
+    "Apixabán",
+    "Rivaroxabán",
+    "Edoxabán",
+  ];
+  List<Map<String, dynamic>> _horariosMed = [
+    {"hora": "09:00", "dosis": "4 mg", "editando": false},
+    {"hora": "21:00", "dosis": "4 mg", "editando": false},
+  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -43,25 +59,29 @@ class _ConfigurationsState extends State<Configurations> {
   void _showTopSnackBar(BuildContext context, String message) {
     final overlay = Overlay.of(context);
     final overlayEntry = OverlayEntry(
-      builder: (context) => Positioned(
-        top: MediaQuery.of(context).padding.top + 20,
-        left: 20,
-        right: 20,
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.black87,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(
-              message,
-              style: const TextStyle(color: Colors.white),
+      builder:
+          (context) => Positioned(
+            top: MediaQuery.of(context).padding.top + 20,
+            left: 20,
+            right: 20,
+            child: Material(
+              color: Colors.transparent,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.black87,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  message,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
             ),
           ),
-        ),
-      ),
     );
 
     overlay.insert(overlayEntry);
@@ -103,9 +123,7 @@ class _ConfigurationsState extends State<Configurations> {
               left: screenWidth * 0.05,
               right: screenWidth * 0.05,
             ),
-            child: AppBarNotifications(
-              onItemTapped: _onItemTapped,
-            ),
+            child: AppBarNotifications(onItemTapped: _onItemTapped),
           ),
           Expanded(
             child: SingleChildScrollView(
@@ -148,7 +166,9 @@ class _ConfigurationsState extends State<Configurations> {
                     children: [
                       const CircleAvatar(
                         radius: 40,
-                        backgroundImage: AssetImage("assets/images/persona.jpg"),
+                        backgroundImage: AssetImage(
+                          "assets/images/persona.jpg",
+                        ),
                       ),
                       Positioned(
                         bottom: 0,
@@ -168,9 +188,18 @@ class _ConfigurationsState extends State<Configurations> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: const [
-                      Text("María García", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text(
+                        "María García",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       SizedBox(height: 4),
-                      Text("Maria@gmail.com", style: TextStyle(fontSize: 14, color: Colors.grey)),
+                      Text(
+                        "Maria@gmail.com",
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
+                      ),
                     ],
                   ),
                 ],
@@ -206,7 +235,10 @@ class _ConfigurationsState extends State<Configurations> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Condiciones médicas", style: TextStyle(fontSize: 14)),
+                        const Text(
+                          "Condiciones médicas",
+                          style: TextStyle(fontSize: 14),
+                        ),
                         const SizedBox(height: 8),
                         Wrap(
                           spacing: 6,
@@ -214,9 +246,14 @@ class _ConfigurationsState extends State<Configurations> {
                           children: [
                             for (var condition in _condicionesMedicas)
                               Chip(
-                                label: Text(condition, style: const TextStyle(color: Colors.blue)),
+                                label: Text(
+                                  condition,
+                                  style: const TextStyle(color: Colors.blue),
+                                ),
                                 onDeleted: () {
-                                  setState(() => _condicionesMedicas.remove(condition));
+                                  setState(
+                                    () => _condicionesMedicas.remove(condition),
+                                  );
                                 },
                               ),
                           ],
@@ -229,7 +266,12 @@ class _ConfigurationsState extends State<Configurations> {
                                 decoration: const InputDecoration(
                                   hintText: "+ Añadir condición",
                                   isDense: true,
-                                  contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                  contentPadding: EdgeInsets.symmetric(
+                                    vertical: 8,
+                                    horizontal: 12,
+                                  ),
+                                  fillColor: Colors.white,
+                                  filled: true,
                                 ),
                               ),
                             ),
@@ -245,11 +287,27 @@ class _ConfigurationsState extends State<Configurations> {
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF65B0C6),
-                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                backgroundColor: const Color.fromARGB(
+                                  255,
+                                  114,
+                                  193,
+                                  224,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
                               ),
-                              child: const Text("Añadir"),
+                              child: Text(
+                                "Añadir",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -266,7 +324,10 @@ class _ConfigurationsState extends State<Configurations> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Altura (cm)", style: TextStyle(fontSize: 14)),
+                        const Text(
+                          "Altura (cm)",
+                          style: TextStyle(fontSize: 14),
+                        ),
                         const SizedBox(height: 16),
                         TextField(
                           keyboardType: TextInputType.number,
@@ -288,13 +349,25 @@ class _ConfigurationsState extends State<Configurations> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Grupo sanguíneo", style: TextStyle(fontSize: 14)),
+                        const Text(
+                          "Grupo sanguíneo",
+                          style: TextStyle(fontSize: 14),
+                        ),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
                           value: _grupoSanguineo,
                           decoration: const InputDecoration(
-                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(12))),
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 12,
+                            ),
+                            fillColor: Colors.white,
+                            filled: true,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(12),
+                              ),
+                            ),
                           ),
                           items: const [
                             DropdownMenuItem(value: "A+", child: Text("A+")),
@@ -310,29 +383,43 @@ class _ConfigurationsState extends State<Configurations> {
                             setState(() => _grupoSanguineo = val!);
                           },
                         ),
-                     ],
+                      ],
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: () {
-                  final perfilData = {
-                    "peso": _peso.toStringAsFixed(0),
-                    "altura": _altura.toStringAsFixed(0),
-                    "grupoSanguineo": _grupoSanguineo,
-                    "condicionesMedicas": _condicionesMedicas,
-                  };
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    final perfilData = {
+                      "peso": _peso.toStringAsFixed(0),
+                      "altura": _altura.toStringAsFixed(0),
+                      "grupoSanguineo": _grupoSanguineo,
+                      "condicionesMedicas": _condicionesMedicas,
+                    };
 
-                  _showTopSnackBar(context, "🎉 ¡Felicidades! Se guardaron los datos: $perfilData");
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF78C8C9),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    _showTopSnackBar(
+                      context,
+                      "🎉 ¡Felicidades! Se guardaron los datos: $perfilData",
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 114, 193, 224),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    "Guardar configuración",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
-                child: const Text("Guardar configuración"),
               ),
             ],
           ),
@@ -342,40 +429,271 @@ class _ConfigurationsState extends State<Configurations> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _buildCard(
-              title: "Sintróm",
+              titleWidget: Row(
+                children: [
+                  Expanded(
+                    child: IgnorePointer(
+                      ignoring: !_modoEdicionAnticoagulante,
+                      child: DropdownButtonFormField<String>(
+                        value: _anticoagulante,
+                        onChanged: (val) {
+                          setState(() => _anticoagulante = val!);
+                        },
+                        decoration: InputDecoration(
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: const BorderRadius.all(
+                              Radius.circular(12),
+                            ),
+                            borderSide: BorderSide(
+                              color:
+                                  _modoEdicionAnticoagulante
+                                      ? Colors.grey
+                                      : Colors.grey.shade300,
+                            ),
+                          ),
+                        ),
+                        icon: const Icon(Icons.arrow_drop_down),
+                        items:
+                            _anticoagulantesDisponibles
+                                .map(
+                                  (med) => DropdownMenuItem(
+                                    value: med,
+                                    child: Text(med),
+                                  ),
+                                )
+                                .toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: Icon(
+                      _modoEdicionAnticoagulante ? Icons.check : Icons.edit,
+                      color:
+                          _modoEdicionAnticoagulante
+                              ? Colors.green
+                              : Colors.grey,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        if (_modoEdicionAnticoagulante) {
+                          // ✅ Mostrar confirmación
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                "Actualizado: $_anticoagulante - ${_dosis.toStringAsFixed(2)} mg",
+                              ),
+                              backgroundColor: Colors.green,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                        _modoEdicionAnticoagulante =
+                            !_modoEdicionAnticoagulante;
+                      });
+                    },
+                  ),
+                ],
+              ),
               children: [
-                const Text("4 mg", style: TextStyle(fontSize: 16)),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text("Rango objetivo", style: TextStyle(fontSize: 14)),
-                    Text("Último INR", style: TextStyle(fontSize: 14)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    Text("2 - 3", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    Text("2.8", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                  ],
-                ),
+                _modoEdicionAnticoagulante
+                    ? Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.remove_circle_outline),
+                          onPressed: () {
+                            setState(() {
+                              if (_dosis > 0.25) _dosis -= 0.25;
+                            });
+                          },
+                        ),
+                        Text(
+                          "${_dosis.toStringAsFixed(2)} mg",
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.add_circle_outline),
+                          onPressed: () {
+                            setState(() {
+                              _dosis += 0.25;
+                            });
+                          },
+                        ),
+                      ],
+                    )
+                    : Text(
+                      "${_dosis.toStringAsFixed(2)} mg",
+                      style: const TextStyle(fontSize: 16),
+                    ),
               ],
             ),
+
             const SizedBox(height: 16),
             _buildCard(
               title: "Horario de medicación",
               children: [
-                _buildMedicationTimeRow("09:00", "4 mg"),
-                const SizedBox(height: 12),
-                _buildMedicationTimeRow("21:00", "4 mg"),
-                const SizedBox(height: 12),
+                ..._horariosMed.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  var horario = entry.value;
+
+                  return Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F6FD),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.access_time, size: 20),
+                            const SizedBox(width: 12),
+                            Text(
+                              horario["hora"],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Text(horario["dosis"]),
+                            const Spacer(),
+                            IconButton(
+                              icon: Icon(
+                                horario["editando"] ? Icons.check : Icons.edit,
+                                color:
+                                    horario["editando"]
+                                        ? Colors.green
+                                        : Colors.black87,
+                              ),
+                              onPressed: () async {
+                                if (horario["editando"]) {
+                                  // Guardar y salir de modo edición
+                                  setState(() {
+                                    _horariosMed[index]["editando"] = false;
+                                  });
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        "Hora actualizada a ${horario["hora"]}",
+                                      ),
+                                      backgroundColor: Colors.green,
+                                    ),
+                                  );
+                                } else {
+                                  // Elegir nueva hora
+                                  final picked = await showTimePicker(
+                                    context: context,
+                                    initialTime: TimeOfDay(
+                                      hour: int.parse(
+                                        horario["hora"].split(":")[0],
+                                      ),
+                                      minute: int.parse(
+                                        horario["hora"].split(":")[1],
+                                      ),
+                                    ),
+                                  );
+
+                                  if (picked != null) {
+                                    setState(() {
+                                      _horariosMed[index]["hora"] = picked
+                                          .format(context);
+                                      _horariosMed[index]["editando"] = true;
+                                    });
+                                  }
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close),
+                              color: Colors.redAccent,
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: const Text(
+                                        "Confirmar eliminación",
+                                      ),
+                                      content: const Text(
+                                        "¿Estás segura de que deseas eliminar este horario de medicación?",
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          child: const Text("Cancelar"),
+                                          onPressed: () {
+                                            Navigator.of(
+                                              context,
+                                            ).pop(); // cerrar el diálogo
+                                          },
+                                        ),
+                                        TextButton(
+                                          child: const Text(
+                                            "Eliminar",
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                          onPressed: () {
+                                            setState(() {
+                                              _horariosMed.removeAt(index);
+                                            });
+                                            Navigator.of(
+                                              context,
+                                            ).pop(); // cerrar el diálogo
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  "Horario eliminado",
+                                                ),
+                                                backgroundColor:
+                                                    Colors.redAccent,
+                                                duration: Duration(seconds: 2),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  );
+                }).toList(),
                 Align(
                   alignment: Alignment.centerRight,
                   child: IconButton(
                     icon: const Icon(Icons.add, color: Colors.black87),
-                    onPressed: () {},
+                    onPressed: () {
+                      setState(() {
+                        _horariosMed.add({
+                          "hora": "08:00",
+                          "dosis": "4 mg",
+                          "editando": false,
+                        });
+                      });
+                    },
                   ),
                 ),
               ],
@@ -386,30 +704,35 @@ class _ConfigurationsState extends State<Configurations> {
               children: [
                 const Text("Rango actual", style: TextStyle(fontSize: 14)),
                 const SizedBox(height: 12),
-                 Column(
-                   crossAxisAlignment: CrossAxisAlignment.start,
-                   children: [
-                     Text("Rango: ${_inrRange.start.toStringAsFixed(1)} - ${_inrRange.end.toStringAsFixed(1)}",
-                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                     RangeSlider(
-                       values: _inrRange,
-                       min: 1.0,
-                       max: 5.0,
-                       divisions: 40,
-                       labels: RangeLabels(
-                         _inrRange.start.toStringAsFixed(1),
-                         _inrRange.end.toStringAsFixed(1),
-                       ),
-                       onChanged: (RangeValues values) {
-                         setState(() {
-                           _inrRange = values;
-                         });
-                       },
-                       activeColor: Colors.green,
-                       inactiveColor: Colors.green.shade100,
-                     ),
-                   ],
-                 ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Rango: ${_inrRange.start.toStringAsFixed(1)} - ${_inrRange.end.toStringAsFixed(1)}",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    RangeSlider(
+                      values: _inrRange,
+                      min: 1.0,
+                      max: 5.0,
+                      divisions: 40,
+                      labels: RangeLabels(
+                        _inrRange.start.toStringAsFixed(1),
+                        _inrRange.end.toStringAsFixed(1),
+                      ),
+                      onChanged: (RangeValues values) {
+                        setState(() {
+                          _inrRange = values;
+                        });
+                      },
+                      activeColor: Colors.green,
+                      inactiveColor: Colors.green.shade100,
+                    ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 16),
@@ -423,14 +746,24 @@ class _ConfigurationsState extends State<Configurations> {
                   "rangoINR": {
                     "min": _inrRange.start.toStringAsFixed(1),
                     "max": _inrRange.end.toStringAsFixed(1),
-                  }
+                  },
                 };
-                _showTopSnackBar(context, "🎉 ¡Felicidades! Se guardaron los datos de medicación: $medicacionData");
+                _showTopSnackBar(
+                  context,
+                  "🎉 ¡Felicidades! Se guardaron los datos de medicación: $medicacionData",
+                );
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF78C8C9),
+                backgroundColor: const Color.fromARGB(255, 114, 193, 224),
+                foregroundColor: Colors.white,
+                textStyle: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
               child: const Text("Guardar configuración"),
             ),
@@ -446,27 +779,52 @@ class _ConfigurationsState extends State<Configurations> {
               _buildCard(
                 title: "Tipos de alertas",
                 children: [
-                  _buildSwitch("Alertas de INR", "Notificaciones cuando los valores están fuera de rango", _alertaInr, (val) {
-                    setState(() => _alertaInr = val);
-                  }),
-                  _buildSwitch("Recordatorios de medicación", "Avisos para tomar tu medicación", _recordatorioMed, (val) {
-                    setState(() => _recordatorioMed = val);
-                  }),
-                  _buildSwitch("Valores críticos", "Alertas inmediatas para valores peligrosos", _valoresCriticos, (val) {
-                    setState(() => _valoresCriticos = val);
-                  }),
+                  _buildSwitch(
+                    "Alertas de INR",
+                    "Notificaciones cuando los valores están fuera de rango",
+                    _alertaInr,
+                    (val) {
+                      setState(() => _alertaInr = val);
+                    },
+                  ),
+                  _buildSwitch(
+                    "Recordatorios de medicación",
+                    "Avisos para tomar tu medicación",
+                    _recordatorioMed,
+                    (val) {
+                      setState(() => _recordatorioMed = val);
+                    },
+                  ),
+                  _buildSwitch(
+                    "Valores críticos",
+                    "Alertas inmediatas para valores peligrosos",
+                    _valoresCriticos,
+                    (val) {
+                      setState(() => _valoresCriticos = val);
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
               _buildCard(
                 title: "Método de notificación",
                 children: [
-                  _buildSwitch("Notificaciones push", "Alertas en tu dispositivo", _push, (val) {
-                    setState(() => _push = val);
-                  }),
-                  _buildSwitch("Correo electrónico", "Recibe alertas por email", _email, (val) {
-                    setState(() => _email = val);
-                  }),
+                  _buildSwitch(
+                    "Notificaciones push",
+                    "Alertas en tu dispositivo",
+                    _push,
+                    (val) {
+                      setState(() => _push = val);
+                    },
+                  ),
+                  _buildSwitch(
+                    "Correo electrónico",
+                    "Recibe alertas por email",
+                    _email,
+                    (val) {
+                      setState(() => _email = val);
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -481,9 +839,18 @@ class _ConfigurationsState extends State<Configurations> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text("Hora de notificaciones", style: TextStyle(fontSize: 16)),
-                              Text("Seleccionada: ${_notificationTime.format(context)}",
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87)),
+                              const Text(
+                                "Hora de notificaciones",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                              Text(
+                                "Seleccionada: ${_notificationTime.format(context)}",
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.black87,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -504,12 +871,22 @@ class _ConfigurationsState extends State<Configurations> {
                       ],
                     ),
                   ),
-                  _buildSwitch("Sonido de alerta", "Activar sonido en notificaciones", _sonido, (val) {
-                    setState(() => _sonido = val);
-                  }),
-                  _buildSwitch("Vibración", "Activar vibración en notificaciones", _vibracion, (val) {
-                    setState(() => _vibracion = val);
-                  }),
+                  _buildSwitch(
+                    "Sonido de alerta",
+                    "Activar sonido en notificaciones",
+                    _sonido,
+                    (val) {
+                      setState(() => _sonido = val);
+                    },
+                  ),
+                  _buildSwitch(
+                    "Vibración",
+                    "Activar vibración en notificaciones",
+                    _vibracion,
+                    (val) {
+                      setState(() => _vibracion = val);
+                    },
+                  ),
                 ],
               ),
               const SizedBox(height: 16),
@@ -526,15 +903,27 @@ class _ConfigurationsState extends State<Configurations> {
                     "vibracion": _vibracion,
                     "horaNotificacion": _notificationTime.format(context),
                   };
- 
-                  _showTopSnackBar(context, "🎉 ¡Felicidades! Se guardaron los datos de notificaciones: $notificacionesData");
+
+                  _showTopSnackBar(
+                    context,
+                    "🎉 ¡Felicidades! Se guardaron los datos de notificaciones: $notificacionesData",
+                  );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF78C8C9),
+                  backgroundColor: const Color.fromARGB(255, 114, 193, 224),
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
-                child: const Text("Guardar configuración"),
+                child: const Text(
+                  "Guardar configuración",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
               ),
             ],
           ),
@@ -544,7 +933,11 @@ class _ConfigurationsState extends State<Configurations> {
     }
   }
 
-  Widget _buildCard({required String title, required List<Widget> children}) {
+  Widget _buildCard({
+    String? title,
+    Widget? titleWidget,
+    required List<Widget> children,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -561,7 +954,13 @@ class _ConfigurationsState extends State<Configurations> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          if (titleWidget != null)
+            titleWidget
+          else if (title != null)
+            Text(
+              title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
           const SizedBox(height: 12),
           ...children,
         ],
@@ -569,7 +968,12 @@ class _ConfigurationsState extends State<Configurations> {
     );
   }
 
-  Widget _buildSwitch(String title, String subtitle, bool value, ValueChanged<bool> onChanged) {
+  Widget _buildSwitch(
+    String title,
+    String subtitle,
+    bool value,
+    ValueChanged<bool> onChanged,
+  ) {
     return SwitchListTile(
       title: Text(title),
       subtitle: Text(subtitle),
@@ -596,7 +1000,10 @@ class _ConfigurationsState extends State<Configurations> {
           child: Row(
             children: [
               Expanded(
-                child: Text(hint, style: const TextStyle(color: Colors.black87)),
+                child: Text(
+                  hint,
+                  style: const TextStyle(color: Colors.black87),
+                ),
               ),
               if (suffix != null)
                 Text(suffix, style: const TextStyle(color: Colors.grey)),
@@ -606,7 +1013,7 @@ class _ConfigurationsState extends State<Configurations> {
       ],
     );
   }
-  
+
   Widget _buildMedicationTimeRow(String time, String dose) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),

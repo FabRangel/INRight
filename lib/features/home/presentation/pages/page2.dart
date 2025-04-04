@@ -237,22 +237,31 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children:
-                              historyData
-                                  .asMap()
-                                  .entries
-                                  .map(
-                                    (entry) => AnimatedHistoryItem(
-                                      index: entry.key,
-                                      item: HistoryItem(
-                                        value: entry.value['value'],
-                                        date: entry.value['date'],
-                                        time: entry.value['time'],
-                                        trend: entry.value['trend'],
-                                      ),
+                          children: [
+                            const Text(
+                              'Historial de INR',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ...historyData
+                                .asMap()
+                                .entries
+                                .map(
+                                  (entry) => AnimatedHistoryItem(
+                                    index: entry.key,
+                                    item: HistoryItem(
+                                      value: entry.value['value'],
+                                      date: entry.value['date'],
+                                      time: entry.value['time'],
+                                      trend: entry.value['trend'],
                                     ),
-                                  )
-                                  .toList(),
+                                  ),
+                                )
+                                .toList(),
+                          ],
                         ),
                       ),
                     ],
@@ -376,5 +385,3 @@ class StatBox extends StatelessWidget {
     );
   }
 }
-
-

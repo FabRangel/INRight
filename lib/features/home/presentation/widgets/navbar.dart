@@ -9,7 +9,7 @@ import 'package:inright/features/home/presentation/pages/page5.dart';
 class Navbar extends StatefulWidget {
   final int initialPage;
 
-  const Navbar({super.key, this.initialPage = 2}); // 👈 por defecto, página 3
+  const Navbar({super.key, this.initialPage = 2});
 
   @override
   State<Navbar> createState() => _HomeState();
@@ -54,24 +54,30 @@ class _HomeState extends State<Navbar> {
         color: Colors.white,
         showLabel: false,
         kBottomRadius: 40.0,
-        bottomBarWidth: MediaQuery.of(context).size.width - 10,
+        bottomBarWidth: MediaQuery.of(context).size.width - 40,
         removeMargins: true,
         showShadow: true,
-        shadowElevation: 20,
+        shadowElevation: 10,
         notchColor: const Color.fromARGB(255, 114, 193, 224),
         durationInMilliSeconds: 300,
-        kIconSize: 20.0,
+        kIconSize: 24.0,
         bottomBarItems: [
           BottomBarItem(
-            inActiveItem: Icon(Icons.show_chart, color: Colors.grey.shade600),
+            inActiveItem: Transform.translate(
+              offset: Offset(-4, 0),
+              child: Icon(Icons.show_chart, color: Colors.grey.shade600),
+            ),
             activeItem: _buildActiveIcon(Icons.show_chart),
           ),
+
           BottomBarItem(
             inActiveItem: Icon(Icons.water_drop, color: Colors.grey.shade600),
             activeItem: _buildActiveIcon(Icons.water_drop),
           ),
           BottomBarItem(
-            inActiveItem: Icon(Icons.home_filled, color: Colors.blueGrey),
+            inActiveItem: Center(
+              child: Icon(Icons.home_filled, color: Colors.blueGrey),
+            ),
             activeItem: _buildActiveIcon(Icons.home_filled),
           ),
           BottomBarItem(
@@ -109,7 +115,11 @@ class _HomeState extends State<Navbar> {
 
   Widget _buildActiveIcon(IconData icon) {
     return Container(
-      decoration: const BoxDecoration(color: Color.fromARGB(255, 114, 193, 224)),
+      alignment: Alignment.center, // Asegura el centrado
+      decoration: const BoxDecoration(
+        color: Color.fromARGB(255, 114, 193, 224),
+        shape: BoxShape.circle, // Opcional para mantener simetría
+      ),
       child: Icon(icon, color: Colors.white, size: 25.0),
     );
   }
