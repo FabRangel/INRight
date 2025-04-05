@@ -364,14 +364,6 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
                                     color: Colors.black87,
                                   ),
                                 ),
-                                Text(
-                                  'Ver todo',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                    color: Colors.blue,
-                                  ),
-                                ),
                               ],
                             ),
                             const SizedBox(height: 10),

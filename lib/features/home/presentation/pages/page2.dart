@@ -184,40 +184,34 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                   padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
                   child: Column(
                     children: [
-                      FadeTransition(
-                        opacity: _fadeAnimation,
-                        child: SlideTransition(
-                          position: _offsetAnimation,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: const [
-                              Expanded(
-                                child: StatBox(
-                                  title: "Racha",
-                                  value: "7 días",
-                                  valueColor: Colors.black,
-                                  isBold: true,
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                              Expanded(
-                                child: StatBox(
-                                  title: "Más alto",
-                                  value: "3.1",
-                                  valueColor: Colors.red,
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                              Expanded(
-                                child: StatBox(
-                                  title: "Más bajo",
-                                  value: "2.4",
-                                  valueColor: Colors.green,
-                                ),
-                              ),
-                            ],
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: const [
+                          Expanded(
+                            child: StatBox(
+                              title: "Racha",
+                              value: "7 días",
+                              valueColor: Colors.black,
+                              isBold: true,
+                            ),
                           ),
-                        ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: StatBox(
+                              title: "Más alto",
+                              value: "3.1",
+                              valueColor: Colors.red,
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Expanded(
+                            child: StatBox(
+                              title: "Más bajo",
+                              value: "2.4",
+                              valueColor: Colors.green,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 30),
                       const Trendchart(),

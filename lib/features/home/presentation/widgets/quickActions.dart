@@ -1,3 +1,4 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
 import 'package:inright/features/home/presentation/pages/page4.dart';
 import 'package:inright/features/home/presentation/widgets/addInrForm.dart'
@@ -76,8 +77,8 @@ class QuickActionsWidget extends StatelessWidget {
                     Icons.calendar_today,
                     "Nueva\nprueba",
                     const Color.fromARGB(255, 251, 255, 196),
-                    () {
-                      showModalBottomSheet(
+                    () async {
+                      final resultado = await showModalBottomSheet(
                         isDismissible: true,
                         enableDrag: true,
                         context: context,
@@ -99,6 +100,23 @@ class QuickActionsWidget extends StatelessWidget {
                           );
                         },
                       );
+                      if (resultado == "guardado") {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            elevation: 0,
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: Colors.transparent,
+                            content: AwesomeSnackbarContent(
+                              title: '¡Listo!',
+                              color: Colors.green,
+                              message:
+                                  'El valor de INR fue registrado correctamente.',
+                              contentType: ContentType.success,
+                              inMaterialBanner: true,
+                            ),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ],
