@@ -747,7 +747,7 @@ class _ConfigurationsState extends State<Configurations> {
                       setState(() {
                         _horariosMed.add({
                           "hora": "08:00",
-                          "dosis": "4 mg",
+                          "dosis": _dosis.toString() + " mg",
                           "editando": false,
                         });
                       });
