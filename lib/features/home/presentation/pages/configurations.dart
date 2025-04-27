@@ -6,6 +6,7 @@ import 'package:inright/features/home/presentation/widgets/rangeInr.dart';
 import 'package:inright/features/home/presentation/widgets/targetRange.dart';
 import 'package:inright/features/home/presentation/widgets/appBarNotifications.dart';
 import 'package:inright/features/home/presentation/widgets/navbar.dart';
+import 'package:inright/features/home/presentation/widgets/medicationHourConfiguration.dart';
 
 class Configurations extends StatefulWidget {
   const Configurations({super.key});
@@ -50,45 +51,21 @@ class _ConfigurationsState extends State<Configurations> {
     {"hora": "09:00", "dosis": "4 mg", "editando": false},
     {"hora": "21:00", "dosis": "4 mg", "editando": false},
   ];
+  List<Map<String, dynamic>> _esquemas = [
+    {
+      "dosis": 5.0,
+      "dias": ["lunes", "miércoles", "viernes"],
+      "hora": "09:00",
+    },
+  ];
+  bool _modoEditando = true;
+  bool _modoEliminando = true;
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index; // Actualizar el estado
     });
   }
-
-  // void _showTopSnackBar(
-  //   BuildContext context,
-  //   String title,
-  //   String message,
-  //   ContentType type,
-  //   Color color,
-  // ) {
-  //   final overlay = Overlay.of(context);
-  //   final overlayEntry = OverlayEntry(
-  //     builder:
-  //         (context) => Positioned(
-  //           top: MediaQuery.of(context).padding.bottom + 20,
-  //           left: 20,
-  //           right: 20,
-  //           child: Material(
-  //             color: color,
-  //             child: AwesomeSnackbarContent(
-  //               title: title,
-  //               message: message,
-  //               contentType: type,
-  //               inMaterialBanner: true,
-  //             ),
-  //           ),
-  //         ),
-  //   );
-
-  //   overlay.insert(overlayEntry);
-
-  //   Future.delayed(const Duration(seconds: 3), () {
-  //     overlayEntry.remove();
-  //   });
-  // }
 
   void _showTopSnackBar(
     BuildContext context,
@@ -576,183 +553,43 @@ class _ConfigurationsState extends State<Configurations> {
 
             const SizedBox(height: 16),
             _buildCard(
-              title: "Horario de medicación",
+              title: "Esquema de medicación",
               children: [
-                ..._horariosMed.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  var horario = entry.value;
-
-                  return Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF3F6FD),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.access_time, size: 20),
-                            const SizedBox(width: 12),
-                            Text(
-                              horario["hora"],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Text(horario["dosis"]),
-                            const Spacer(),
-                            IconButton(
-                              icon: Icon(
-                                horario["editando"] ? Icons.check : Icons.edit,
-                                color:
-                                    horario["editando"]
-                                        ? Colors.green
-                                        : Colors.black87,
-                              ),
-                              onPressed: () async {
-                                if (horario["editando"]) {
-                                  // Guardar y salir de modo edición
-                                  setState(() {
-                                    _horariosMed[index]["editando"] = false;
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: AwesomeSnackbarContent(
-                                        title: "¡Éxito!",
-                                        message:
-                                            "Horario guardado: ${horario["hora"]} - ${horario["dosis"]}",
-                                        color: Colors.green,
-                                        contentType: ContentType.success,
-                                      ),
-                                      backgroundColor: Colors.transparent,
-                                      duration: const Duration(seconds: 2),
-                                      elevation: 0,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                } else {
-                                  // Elegir nueva hora
-                                  final picked = await showTimePicker(
-                                    context: context,
-                                    initialTime: TimeOfDay(
-                                      hour: int.parse(
-                                        horario["hora"].split(":")[0],
-                                      ),
-                                      minute: int.parse(
-                                        horario["hora"].split(":")[1],
-                                      ),
-                                    ),
-                                  );
-
-                                  if (picked != null) {
-                                    setState(() {
-                                      _horariosMed[index]["hora"] = picked
-                                          .format(context);
-                                      _horariosMed[index]["editando"] = true;
-                                    });
-                                  }
-                                }
-                              },
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.close),
-                              color: Colors.redAccent,
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(20),
-                                      ),
-                                      backgroundColor: Colors.white,
-                                      title: const Text(
-                                        "Confirmar eliminación",
-                                      ),
-                                      content: const Text(
-                                        "¿Estás segura de que deseas eliminar este horario de medicación?",
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          child: const Text(
-                                            "Cancelar",
-                                            style: TextStyle(
-                                              color: Colors.blueAccent,
-                                            ),
-                                          ),
-                                          onPressed: () {
-                                            Navigator.of(
-                                              context,
-                                            ).pop(); // cerrar el diálogo
-                                          },
-                                        ),
-                                        TextButton(
-                                          child: const Text(
-                                            "Eliminar",
-                                            style: TextStyle(color: Colors.red),
-                                          ),
-                                          onPressed: () {
-                                            setState(() {
-                                              _horariosMed.removeAt(index);
-                                            });
-                                            Navigator.of(
-                                              context,
-                                            ).pop(); // cerrar el diálogo
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: AwesomeSnackbarContent(
-                                                  title: "¡Éxito!",
-                                                  message:
-                                                      "Horario eliminado correctamente",
-                                                  contentType:
-                                                      ContentType.success,
-                                                  color: Colors.redAccent,
-                                                  inMaterialBanner: true,
-                                                ),
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                behavior:
-                                                    SnackBarBehavior.floating,
-                                                elevation: 0,
-                                                duration: Duration(seconds: 2),
-                                              ),
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                  );
-                }).toList(),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: IconButton(
-                    icon: const Icon(Icons.add, color: Colors.black87),
-                    onPressed: () {
-                      setState(() {
-                        _horariosMed.add({
-                          "hora": "08:00",
-                          "dosis": _dosis.toString() + " mg",
-                          "editando": false,
-                        });
+                MedicationHourConfiguration(
+                  esquemas: _esquemas,
+                  onAgregar: () {
+                    setState(() {
+                      _esquemas.add({
+                        "dosis": 5.0,
+                        "dias": <String>[],
+                        "hora": "09:00",
                       });
-                    },
-                  ),
+                    });
+                  },
+                  onEliminar: (index) {
+                    setState(() {
+                      _esquemas.removeAt(index);
+                    });
+                  },
+                  onCambiarDosis: (index, nuevaDosis) {
+                    setState(() {
+                      _esquemas[index]["dosis"] = nuevaDosis;
+                    });
+                  },
+                  onCambiarHora:
+                      (index, nuevaHora) => setState(() {
+                        _esquemas[index]["hora"] = nuevaHora;
+                      }),
+                  onToggleDia: (index, dia) {
+                    setState(() {
+                      final dias = _esquemas[index]["dias"];
+                      if (dias.contains(dia)) {
+                        dias.remove(dia);
+                      } else {
+                        dias.add(dia);
+                      }
+                    });
+                  },
                 ),
               ],
             ),
