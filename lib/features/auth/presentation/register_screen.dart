@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'widgets/custom_button.dart';
 import 'widgets/custom_text_field.dart';
+import 'package:inright/features/auth/data/firebaseAuth.service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -14,6 +18,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _authService = FirebaseAuthService();
+
+  Future<void> _registerUser() async {
+    try {
+      await _authService.register(
+        _nameController.text.trim(),
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Usuario registrado correctamente")),
+      );
+      Navigator.pushReplacementNamed(context, '/login');
+    } on FirebaseAuthException catch (e) {
+      String message = 'Error al registrar';
+      if (e.code == 'email-already-in-use') {
+        message = 'El correo ya está en uso';
+      } else if (e.code == 'weak-password') {
+        message = 'Contraseña débil';
+      }
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Error: ${e.toString()}")));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -43,22 +78,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   CustomTextField(
                     label: "Tu Nombre",
                     controller: _nameController,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'El nombre es requerido';
-                      }
-                      return null;
-                    },
+                    validator:
+                        (value) =>
+                            value == null || value.isEmpty
+                                ? 'El nombre es requerido'
+                                : null,
                   ),
                   const SizedBox(height: 10),
                   CustomTextField(
                     label: "Correo Electrónico",
                     controller: _emailController,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty)
                         return 'El correo es requerido';
-                      }
-                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$').hasMatch(value)) {
+                      if (!RegExp(
+                        r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$',
+                      ).hasMatch(value)) {
                         return 'Correo inválido';
                       }
                       return null;
@@ -70,12 +105,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     isPassword: true,
                     controller: _passwordController,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.isEmpty)
                         return 'La contraseña es requerida';
-                      }
-                      if (value.length < 6) {
-                        return 'Mínimo 6 caracteres';
-                      }
+                      if (value.length < 6) return 'Mínimo 6 caracteres';
                       return null;
                     },
                   ),
@@ -85,9 +117,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     buttonColor: const Color(0xFF6CAFB7),
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Procesando registro...')),
-                        );
+                        _registerUser();
                       }
                     },
                   ),

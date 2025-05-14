@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inright/features/auth/data/firebaseAuth.service.dart';
 import 'widgets/custom_button.dart';
 import 'widgets/custom_text_field.dart';
 
@@ -13,6 +14,25 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _authService = FirebaseAuthService();
+
+  Future<void> _loginUser() async {
+    try {
+      await _authService.signIn(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Inicio de sesión exitoso")));
+      Navigator.pushReplacementNamed(context, '/home');
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error al iniciar sesión: ${e.toString()}")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,14 +61,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 label: "Correo Electrónico",
                 controller: _emailController,
                 validator: (value) {
-                  if (value == null || value.isEmpty) {
+                  if (value == null || value.isEmpty)
                     return 'El correo es requerido';
-                  }
                   if (!RegExp(
                     r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$',
-                  ).hasMatch(value)) {
+                  ).hasMatch(value))
                     return 'Correo inválido';
-                  }
                   return null;
                 },
               ),
@@ -57,20 +75,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 label: "Contraseña",
                 isPassword: true,
                 controller: _passwordController,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'La contraseña es requerida';
-                  }
-                  return null;
-                },
+                validator:
+                    (value) =>
+                        value == null || value.isEmpty
+                            ? 'La contraseña es requerida'
+                            : null,
               ),
               const SizedBox(height: 10),
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/forgot-password');
-                  },
+                  onPressed:
+                      () => Navigator.pushNamed(context, '/forgot-password'),
                   child: const Text("Recuperar Contraseña"),
                 ),
               ),
@@ -80,8 +96,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 buttonColor: const Color(0xFF6CAFB7),
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    // Lógica de inicio de sesión
-                    Navigator.pushReplacementNamed(context, '/home');
+                    _loginUser();
                   }
                 },
               ),
@@ -97,9 +112,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 children: [
                   const Text("¿Nuevo usuario?"),
                   TextButton(
-                    onPressed: () {
-                      Navigator.pushReplacementNamed(context, '/register');
-                    },
+                    onPressed:
+                        () => Navigator.pushReplacementNamed(
+                          context,
+                          '/register',
+                        ),
                     child: const Text("Crea una cuenta"),
                   ),
                 ],
