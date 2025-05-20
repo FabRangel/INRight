@@ -1,8 +1,46 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:inright/features/home/presentation/pages/data/inr.service.dart';
 
-class AddInrForm extends StatelessWidget {
+final _inrService = InrService();
+
+class AddInrForm extends StatefulWidget {
   const AddInrForm({super.key});
+
+  @override
+  State<AddInrForm> createState() => _AddInrFormState();
+}
+
+class _AddInrFormState extends State<AddInrForm> {
+  final TextEditingController _inrController = TextEditingController();
+
+  @override
+  void dispose() {
+    _inrController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSave() async {
+    final valor = double.tryParse(_inrController.text.trim());
+
+    if (valor != null) {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      print("Usuario actual: $uid");
+
+      await _inrService.saveInr(valor);
+
+      // Limpiar campo de texto
+      _inrController.clear();
+
+      // Cerrar modal y recargar desde Page2
+      Navigator.of(context).pop("guardado");
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Por favor ingresa un número válido")),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +85,8 @@ class AddInrForm extends StatelessWidget {
           ),
           const SizedBox(height: 30),
           TextField(
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            controller: _inrController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             inputFormatters: [
               FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
             ],
@@ -64,9 +103,7 @@ class AddInrForm extends StatelessWidget {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).pop("guardado");
-                  },
+                  onPressed: _handleSave,
                   icon: const Icon(Icons.save),
                   label: const Text('Guardar'),
                   style: ElevatedButton.styleFrom(

@@ -1,10 +1,10 @@
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:inright/features/home/presentation/widgets/addInrForm.dart';
 import 'package:inright/features/home/presentation/widgets/trendChart.dart';
 import 'package:inright/features/home/presentation/widgets/historyItem.dart';
 import 'package:inright/features/home/presentation/widgets/animatedHistoryItem.dart';
+import 'package:inright/features/home/presentation/pages/data/inr.service.dart';
 
 class Page2 extends StatefulWidget {
   const Page2({super.key});
@@ -18,23 +18,15 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
   late Animation<Offset> _offsetAnimation;
   late Animation<double> _fadeAnimation;
 
-  final List<Map<String, dynamic>> historyData = [
-    {"value": 2.7, "date": "15 Ene", "time": "09:00", "trend": "neutral"},
-    {"value": 2.8, "date": "01 Ene", "time": "09:15", "trend": "neutral"},
-    {"value": 2.5, "date": "15 Dic", "time": "08:45", "trend": "down"},
-    {"value": 3.1, "date": "01 Dic", "time": "09:30", "trend": "up"},
-    {"value": 2.4, "date": "15 Nov", "time": "09:20", "trend": "neutral"},
-  ];
+  List<Map<String, dynamic>> historyData = [];
 
   @override
   void initState() {
     super.initState();
-
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-
     _offsetAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
@@ -46,6 +38,14 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeIn));
 
     _controller.forward();
+    _loadInrHistory();
+  }
+
+  Future<void> _loadInrHistory() async {
+    final data = await InrService().getInrHistory();
+    setState(() {
+      historyData = data;
+    });
   }
 
   @override
@@ -58,7 +58,6 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
     final topPadding = MediaQuery.of(context).padding.top;
-    final double headerHeight = screenHeight * 0.34;
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 247, 247, 249),
@@ -79,9 +78,9 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        Color.fromARGB(255, 191, 232, 238),
-                        Color.fromARGB(255, 98, 191, 228),
-                        Color.fromARGB(255, 114, 193, 224),
+                        Color(0xFFBFE8EE),
+                        Color(0xFF62BFE4),
+                        Color(0xFF72C1E0),
                       ],
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
@@ -93,13 +92,13 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Text(
+                    children: const [
+                      Text(
                         "Última medición",
                         style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
-                      const SizedBox(height: 5),
-                      const Text(
+                      SizedBox(height: 5),
+                      Text(
                         "2.8",
                         style: TextStyle(
                           color: Colors.white,
@@ -107,8 +106,8 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      const Row(
+                      SizedBox(height: 10),
+                      Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
@@ -128,10 +127,10 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
+                        children: [
                           Column(
                             children: [
                               Text(
@@ -241,21 +240,18 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            ...historyData
-                                .asMap()
-                                .entries
-                                .map(
-                                  (entry) => AnimatedHistoryItem(
-                                    index: entry.key,
-                                    item: HistoryItem(
-                                      value: entry.value['value'],
-                                      date: entry.value['date'],
-                                      time: entry.value['time'],
-                                      trend: entry.value['trend'],
-                                    ),
-                                  ),
-                                )
-                                .toList(),
+                            ...historyData.asMap().entries.map(
+                              (entry) => AnimatedHistoryItem(
+                                index: entry.key,
+                                item: HistoryItem(
+                                  value:
+                                      entry.value['value']?.toDouble() ?? 0.0,
+                                  date: entry.value['date'] ?? '',
+                                  time: entry.value['time'] ?? '',
+                                  trend: entry.value['trend'] ?? 'neutral',
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -291,6 +287,7 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                 );
 
                 if (resultado == "guardado") {
+                  await _loadInrHistory();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       elevation: 0,
@@ -308,7 +305,7 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                   );
                 }
               },
-              backgroundColor: const Color.fromARGB(255, 114, 193, 224),
+              backgroundColor: const Color(0xFF72C1E0),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(15),
               ),
