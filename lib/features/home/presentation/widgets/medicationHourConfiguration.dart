@@ -2,21 +2,21 @@ import 'package:flutter/material.dart';
 
 class MedicationHourConfiguration extends StatelessWidget {
   final List<Map<String, dynamic>> esquemas;
-  final void Function() onAgregar;
-  final void Function(int index) onEliminar;
-  final void Function(int index, double nuevaDosis) onCambiarDosis;
-  final void Function(int index, String dia) onToggleDia;
-  final void Function(int index, String nuevaHora) onCambiarHora;
+  final Function() onAgregar;
+  final Function(int) onEliminar;
+  final Function(int, double) onCambiarDosis;
+  final Function(int, String) onCambiarHora;
+  final Function(int, String) onToggleDia;
 
   const MedicationHourConfiguration({
-    super.key,
+    Key? key,
     required this.esquemas,
     required this.onAgregar,
     required this.onEliminar,
     required this.onCambiarDosis,
     required this.onCambiarHora,
     required this.onToggleDia,
-  });
+  }) : super(key: key);
 
   static const List<String> abreviaturas = ['D', 'L', 'M', 'X', 'J', 'V', 'S'];
   static const List<String> claves = [

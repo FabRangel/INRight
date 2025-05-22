@@ -1,5 +1,7 @@
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:inright/features/home/domain/providers/medication_config_provider.dart';
 import 'package:inright/features/home/presentation/widgets/medicationTime.dart';
 import 'package:inright/features/home/presentation/widgets/pacientCard.dart';
 import 'package:inright/features/home/presentation/widgets/rangeInr.dart';
@@ -34,32 +36,7 @@ class _ConfigurationsState extends State<Configurations> {
   double _altura = 165;
   String _grupoSanguineo = "A+";
   List<String> _condicionesMedicas = ["Fibrilación auricular"];
-  RangeValues _inrRange = const RangeValues(2.0, 3.0);
   bool _modoEdicionAnticoagulante = false;
-  String _anticoagulante = "Sintróm";
-  double _dosis = 4;
-  final List<String> _anticoagulantesDisponibles = [
-    "Sintróm",
-    "Warfarina",
-    "Acenocumarol",
-    "Dabigatrán",
-    "Apixabán",
-    "Rivaroxabán",
-    "Edoxabán",
-  ];
-  List<Map<String, dynamic>> _horariosMed = [
-    {"hora": "09:00", "dosis": "4 mg", "editando": false},
-    {"hora": "21:00", "dosis": "4 mg", "editando": false},
-  ];
-  List<Map<String, dynamic>> _esquemas = [
-    {
-      "dosis": 5.0,
-      "dias": ["lunes", "miércoles", "viernes"],
-      "hora": "09:00",
-    },
-  ];
-  bool _modoEditando = true;
-  bool _modoEliminando = true;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -430,243 +407,225 @@ class _ConfigurationsState extends State<Configurations> {
           ),
         );
       case 1:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildCard(
-              titleWidget: Row(
-                children: [
-                  Expanded(
-                    child: IgnorePointer(
-                      ignoring: !_modoEdicionAnticoagulante,
-                      child: DropdownButtonFormField<String>(
-                        value: _anticoagulante,
-                        onChanged: (val) {
-                          setState(() => _anticoagulante = val!);
-                        },
-                        decoration: InputDecoration(
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 10,
-                          ),
-                          border: const OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(12)),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: const BorderRadius.all(
-                              Radius.circular(12),
-                            ),
-                            borderSide: BorderSide(
-                              color:
-                                  _modoEdicionAnticoagulante
-                                      ? Colors.grey
-                                      : Colors.grey.shade300,
-                            ),
-                          ),
-                        ),
-                        icon: const Icon(Icons.arrow_drop_down),
-                        items:
-                            _anticoagulantesDisponibles
-                                .map(
-                                  (med) => DropdownMenuItem(
-                                    value: med,
-                                    child: Text(med),
-                                  ),
-                                )
-                                .toList(),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton(
-                    icon: Icon(
-                      _modoEdicionAnticoagulante ? Icons.check : Icons.edit,
-                      color:
-                          _modoEdicionAnticoagulante
-                              ? Colors.green
-                              : Colors.grey,
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        if (_modoEdicionAnticoagulante) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: AwesomeSnackbarContent(
-                                title: "¡Éxito!",
-                                message:
-                                    "Actualizado: $_anticoagulante - ${_dosis.toStringAsFixed(2)} mg",
-                                color: Colors.green,
-                                contentType: ContentType.success,
-                              ),
-                              backgroundColor: Colors.transparent,
-                              duration: const Duration(seconds: 2),
-                              elevation: 0,
-                              behavior: SnackBarBehavior.floating,
-                            ),
-                          );
-                        }
-                        _modoEdicionAnticoagulante =
-                            !_modoEdicionAnticoagulante;
-                      });
-                    },
-                  ),
-                ],
-              ),
+        return Consumer<MedicationConfigProvider>(
+          builder: (context, medicationProvider, child) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _modoEdicionAnticoagulante
-                    ? Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove_circle_outline),
-                          onPressed: () {
-                            setState(() {
-                              if (_dosis > 0.25) _dosis -= 0.25;
-                            });
-                          },
-                        ),
-                        Text(
-                          "${_dosis.toStringAsFixed(2)} mg",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                _buildCard(
+                  titleWidget: Row(
+                    children: [
+                      Expanded(
+                        child: IgnorePointer(
+                          ignoring: !_modoEdicionAnticoagulante,
+                          child: DropdownButtonFormField<String>(
+                            value: medicationProvider.anticoagulante,
+                            onChanged: (val) {
+                              medicationProvider.updateAnticoagulante(val!);
+                            },
+                            decoration: InputDecoration(
+                              isDense: true,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 10,
+                              ),
+                              border: const OutlineInputBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(12),
+                                ),
+                              ),
+                              filled: true,
+                              fillColor: Colors.white,
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: const BorderRadius.all(
+                                  Radius.circular(12),
+                                ),
+                                borderSide: BorderSide(
+                                  color:
+                                      _modoEdicionAnticoagulante
+                                          ? Colors.grey
+                                          : Colors.grey.shade300,
+                                ),
+                              ),
+                            ),
+                            icon: const Icon(Icons.arrow_drop_down),
+                            items:
+                                medicationProvider.anticoagulantesDisponibles
+                                    .map(
+                                      (med) => DropdownMenuItem(
+                                        value: med,
+                                        child: Text(med),
+                                      ),
+                                    )
+                                    .toList(),
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(Icons.add_circle_outline),
-                          onPressed: () {
-                            setState(() {
-                              _dosis += 0.25;
-                            });
+                      ),
+                      const SizedBox(width: 8),
+                      IconButton(
+                        icon: Icon(
+                          _modoEdicionAnticoagulante ? Icons.check : Icons.edit,
+                          color:
+                              _modoEdicionAnticoagulante
+                                  ? Colors.green
+                                  : Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            if (_modoEdicionAnticoagulante) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: AwesomeSnackbarContent(
+                                    title: "¡Éxito!",
+                                    message:
+                                        "Actualizado: ${medicationProvider.anticoagulante} - ${medicationProvider.dosis.toStringAsFixed(2)} mg",
+                                    color: Colors.green,
+                                    contentType: ContentType.success,
+                                  ),
+                                  backgroundColor: Colors.transparent,
+                                  duration: const Duration(seconds: 2),
+                                  elevation: 0,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                            _modoEdicionAnticoagulante =
+                                !_modoEdicionAnticoagulante;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  children: [
+                    _modoEdicionAnticoagulante
+                        ? Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              onPressed: () {
+                                medicationProvider.decrementDosis();
+                              },
+                            ),
+                            Text(
+                              "${medicationProvider.dosis.toStringAsFixed(2)} mg",
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add_circle_outline),
+                              onPressed: () {
+                                medicationProvider.incrementDosis();
+                              },
+                            ),
+                          ],
+                        )
+                        : Text(
+                          "${medicationProvider.dosis.toStringAsFixed(2)} mg",
+                          style: const TextStyle(fontSize: 16),
+                        ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
+                _buildCard(
+                  title: "Esquema de medicación",
+                  children: [
+                    MedicationHourConfiguration(
+                      esquemas:
+                          medicationProvider.esquemas
+                              .map((e) => e.toMap())
+                              .toList(),
+                      onAgregar: () {
+                        medicationProvider.addEsquema();
+                      },
+                      onEliminar: (index) {
+                        medicationProvider.removeEsquema(index);
+                      },
+                      onCambiarDosis: (index, nuevaDosis) {
+                        medicationProvider.updateEsquemaDosis(
+                          index,
+                          nuevaDosis,
+                        );
+                      },
+                      onCambiarHora: (index, nuevaHora) {
+                        medicationProvider.updateEsquemaHora(index, nuevaHora);
+                      },
+                      onToggleDia: (index, dia) {
+                        medicationProvider.toggleEsquemaDia(index, dia);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _buildCard(
+                  title: "Rango INR objetivo",
+                  children: [
+                    const Text("Rango actual", style: TextStyle(fontSize: 14)),
+                    const SizedBox(height: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Rango: ${medicationProvider.inrRange.start.toStringAsFixed(1)} - ${medicationProvider.inrRange.end.toStringAsFixed(1)}",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        RangeSlider(
+                          values: medicationProvider.inrRange,
+                          min: 1.0,
+                          max: 5.0,
+                          divisions: 40,
+                          labels: RangeLabels(
+                            medicationProvider.inrRange.start.toStringAsFixed(
+                              1,
+                            ),
+                            medicationProvider.inrRange.end.toStringAsFixed(1),
+                          ),
+                          onChanged: (RangeValues values) {
+                            medicationProvider.updateInrRange(values);
                           },
+                          activeColor: Colors.green,
+                          inactiveColor: Colors.green.shade100,
                         ),
                       ],
-                    )
-                    : Text(
-                      "${_dosis.toStringAsFixed(2)} mg",
-                      style: const TextStyle(fontSize: 16),
-                    ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-            _buildCard(
-              title: "Esquema de medicación",
-              children: [
-                MedicationHourConfiguration(
-                  esquemas: _esquemas,
-                  onAgregar: () {
-                    setState(() {
-                      _esquemas.add({
-                        "dosis": 5.0,
-                        "dias": <String>[],
-                        "hora": "09:00",
-                      });
-                    });
-                  },
-                  onEliminar: (index) {
-                    setState(() {
-                      _esquemas.removeAt(index);
-                    });
-                  },
-                  onCambiarDosis: (index, nuevaDosis) {
-                    setState(() {
-                      _esquemas[index]["dosis"] = nuevaDosis;
-                    });
-                  },
-                  onCambiarHora:
-                      (index, nuevaHora) => setState(() {
-                        _esquemas[index]["hora"] = nuevaHora;
-                      }),
-                  onToggleDia: (index, dia) {
-                    setState(() {
-                      final dias = _esquemas[index]["dias"];
-                      if (dias.contains(dia)) {
-                        dias.remove(dia);
-                      } else {
-                        dias.add(dia);
-                      }
-                    });
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildCard(
-              title: "Rango INR objetivo",
-              children: [
-                const Text("Rango actual", style: TextStyle(fontSize: 14)),
-                const SizedBox(height: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Rango: ${_inrRange.start.toStringAsFixed(1)} - ${_inrRange.end.toStringAsFixed(1)}",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    RangeSlider(
-                      values: _inrRange,
-                      min: 1.0,
-                      max: 5.0,
-                      divisions: 40,
-                      labels: RangeLabels(
-                        _inrRange.start.toStringAsFixed(1),
-                        _inrRange.end.toStringAsFixed(1),
-                      ),
-                      onChanged: (RangeValues values) {
-                        setState(() {
-                          _inrRange = values;
-                        });
-                      },
-                      activeColor: Colors.green,
-                      inactiveColor: Colors.green.shade100,
                     ),
                   ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                final medicacionData = {
-                  "horarios": [
-                    {"hora": "09:00", "dosis": "4 mg"},
-                    {"hora": "21:00", "dosis": "4 mg"},
-                  ],
-                  "rangoINR": {
-                    "min": _inrRange.start.toStringAsFixed(1),
-                    "max": _inrRange.end.toStringAsFixed(1),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    final medicacionData =
+                        medicationProvider.getAllConfigData();
+                    _showTopSnackBar(
+                      context,
+                      "¡Éxito!",
+                      "¡Felicidades! Se guardaron los datos de medicación: $medicacionData",
+                      ContentType.success,
+                      Colors.green,
+                    );
                   },
-                };
-                _showTopSnackBar(
-                  context,
-                  "¡Éxito!",
-                  "¡Felicidades! Se guardaron los datos de medicación: $medicacionData",
-                  ContentType.success,
-                  Colors.green,
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 114, 193, 224),
-                foregroundColor: Colors.white,
-                textStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color.fromARGB(255, 114, 193, 224),
+                    foregroundColor: Colors.white,
+                    textStyle: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text("Guardar configuración"),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text("Guardar configuración"),
-            ),
-            const SizedBox(height: 90),
-          ],
+                const SizedBox(height: 90),
+              ],
+            );
+          },
         );
       case 2: // Notificaciones
         return Padding(

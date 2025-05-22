@@ -6,6 +6,7 @@ import 'package:inright/features/home/presentation/pages/page3.dart';
 import 'package:inright/features/home/presentation/pages/page4.dart';
 import 'package:inright/features/home/presentation/pages/page5.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
 
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -15,6 +16,7 @@ import 'package:inright/features/auth/presentation/login_screen.dart';
 import 'package:inright/features/auth/presentation/register_screen.dart';
 import 'package:inright/features/auth/presentation/forgot_password_screen.dart';
 import 'package:inright/features/home/presentation/widgets/navbar.dart';
+import 'package:inright/features/home/domain/providers/medication_config_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,7 +24,15 @@ void main() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isFirstTime = prefs.getBool('first_time') ?? true;
 
-  runApp(MainApp(isFirstTime: isFirstTime));
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => MedicationConfigProvider()),
+        // ...other providers if any
+      ],
+      child: MainApp(isFirstTime: isFirstTime),
+    ),
+  );
 
   if (isFirstTime) {
     await prefs.setBool('first_time', false);
