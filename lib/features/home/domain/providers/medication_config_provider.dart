@@ -295,7 +295,7 @@ class MedicationConfigProvider extends ChangeNotifier {
         dosis.estado = 'pendiente';
       }
     }
-
+ 
     notifyListeners();
   }
 }

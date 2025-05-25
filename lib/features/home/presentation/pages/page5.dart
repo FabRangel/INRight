@@ -32,25 +32,25 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
       duration: const Duration(milliseconds: 800),
     )..forward();
 
-    // Init local notifications
+    //--- Espera al primer frame y *luego* genera las dosis ---
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = Provider.of<MedicationConfigProvider>(
+        context,
+        listen: false,
+      );
+      provider
+        ..generarDosisSegunEsquema(silent: true)
+        ..marcarFaltas(); // ← esto pone estado = 'falta' a las pasadas
+    });
+
+    // notificaciones locales (sin cambios)
     const initSettings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       iOS: DarwinInitializationSettings(),
     );
     _notifier.initialize(initSettings);
 
-    // Asegúrate de que existan dosis antes de calcular mensaje
     Future.microtask(_inicializarMensajeYTimer);
-
-    // Genera dosis y marca faltas después de build
-    Future.delayed(const Duration(milliseconds: 100), () {
-      final provider = Provider.of<MedicationConfigProvider>(
-        context,
-        listen: false,
-      );
-      //provider.generarDosisSegunEsquema(silent: true);
-      //provider.marcarFaltas();
-    });
   }
 
   void _inicializarMensajeYTimer() {
