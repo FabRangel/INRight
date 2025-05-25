@@ -219,6 +219,15 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
                   );
                 } else {
                   provider.confirmarTomaDelDia();
+                  dosisHoy
+                    ..tomada = true
+                    ..horaToma = DateTime.now()
+                    ..estado = 'ok';
+                  _showDelayedNotification();
+                  if (!hasNotified) {
+                    _showDelayedNotification();
+                    hasNotified = true;
+                  }
                   setState(() {
                     final siguiente = _buscarSiguienteDosis(
                       provider,
@@ -239,7 +248,9 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor:
-                    dosisHoy.tomada ? const Color(0xFF67CBF0) : Colors.green,
+                    dosisHoy.tomada
+                        ? const Color.fromARGB(255, 160, 157, 157)
+                        : Colors.green,
                 foregroundColor: Colors.white,
                 minimumSize: const Size.fromHeight(48),
                 shape: RoundedRectangleBorder(
