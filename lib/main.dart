@@ -27,8 +27,15 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => MedicationConfigProvider()),
-        // ...other providers if any
+        ChangeNotifierProvider<MedicationConfigProvider>(
+          create: (_) {
+            final provider = MedicationConfigProvider();
+            provider
+              ..generarDosisSegunEsquema(silent: true)
+              ..marcarFaltas();
+            return provider;
+          },
+        ),
       ],
       child: MainApp(isFirstTime: isFirstTime),
     ),

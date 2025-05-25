@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class MedicationSchema {
   double dosis;
@@ -24,8 +25,41 @@ class MedicationSchema {
   }
 }
 
+class DosisHistorialItem {
+  final String estado;
+  final String dosis;
+  final String hora;
+  final String fecha;
+
+  DosisHistorialItem({
+    required this.estado,
+    required this.dosis,
+    required this.hora,
+    required this.fecha,
+  });
+}
+
+class DosisDiaria {
+  final DateTime fecha;
+  final double dosis;
+  final String hora;
+  final String diaSemana;
+  bool tomada;
+  String estado;
+  DateTime? horaToma;
+
+  DosisDiaria({
+    required this.fecha,
+    required this.dosis,
+    required this.hora,
+    required this.diaSemana,
+    this.tomada = false,
+    this.estado = 'pendiente',
+    this.horaToma,
+  });
+}
+
 class MedicationConfigProvider extends ChangeNotifier {
-  // Anticoagulante seleccionado
   String _anticoagulante = "Sintróm";
   double _dosis = 4.0;
   final List<String> _anticoagulantesDisponibles = [
@@ -38,7 +72,6 @@ class MedicationConfigProvider extends ChangeNotifier {
     "Edoxabán",
   ];
 
-  // Esquemas de medicación
   List<MedicationSchema> _esquemas = [
     MedicationSchema(
       dosis: 5.0,
@@ -47,17 +80,19 @@ class MedicationConfigProvider extends ChangeNotifier {
     ),
   ];
 
-  // Rango INR
-  RangeValues _inrRange = const RangeValues(2.0, 3.0);
+  final List<DosisHistorialItem> _historial = [];
+  List<DosisHistorialItem> get historial => _historial;
 
-  // Getters
+  RangeValues _inrRange = const RangeValues(2.0, 3.0);
   String get anticoagulante => _anticoagulante;
   double get dosis => _dosis;
   List<String> get anticoagulantesDisponibles => _anticoagulantesDisponibles;
   List<MedicationSchema> get esquemas => _esquemas;
   RangeValues get inrRange => _inrRange;
 
-  // Métodos para actualizar valores
+  final List<DosisDiaria> _dosisGeneradas = [];
+  List<DosisDiaria> get dosisGeneradas => _dosisGeneradas;
+
   void updateAnticoagulante(String value) {
     _anticoagulante = value;
     notifyListeners();
@@ -76,11 +111,10 @@ class MedicationConfigProvider extends ChangeNotifier {
   void decrementDosis() {
     if (_dosis > 0.25) {
       _dosis -= 0.25;
+      notifyListeners();
     }
-    notifyListeners();
   }
 
-  // Métodos para esquemas
   void addEsquema() {
     _esquemas.add(MedicationSchema(dosis: 5.0, dias: [], hora: "09:00"));
     notifyListeners();
@@ -119,13 +153,11 @@ class MedicationConfigProvider extends ChangeNotifier {
     }
   }
 
-  // Actualizar rango INR
   void updateInrRange(RangeValues range) {
     _inrRange = range;
     notifyListeners();
   }
 
-  // Guardar toda la configuración
   Map<String, dynamic> getAllConfigData() {
     return {
       'anticoagulante': _anticoagulante,
@@ -133,5 +165,137 @@ class MedicationConfigProvider extends ChangeNotifier {
       'esquemas': _esquemas.map((e) => e.toMap()).toList(),
       'inrRange': {'start': _inrRange.start, 'end': _inrRange.end},
     };
+  }
+
+  void registrarDosis({
+    required double dosis,
+    required String hora,
+    required String estado,
+  }) {
+    final fechaHoy = DateTime.now();
+    final formato = DateFormat("d MMM", "es");
+    final fechaTexto = formato.format(fechaHoy);
+
+    _historial.insert(
+      0,
+      DosisHistorialItem(
+        estado: estado,
+        dosis: '${dosis.toStringAsFixed(1)} mg',
+        hora: hora,
+        fecha: fechaTexto,
+      ),
+    );
+
+    notifyListeners();
+  }
+
+  void limpiarHistorial() {
+    _historial.clear();
+    notifyListeners();
+  }
+
+  void eliminarDosisHistorial(int index) {
+    if (index >= 0 && index < _historial.length) {
+      _historial.removeAt(index);
+      notifyListeners();
+    }
+  }
+
+  void generarDosisSegunEsquema({bool silent = false}) {
+    final hoy = DateTime.now();
+    _dosisGeneradas.clear();
+
+    for (int i = 0; i < 3; i++) {
+      final fecha = hoy.subtract(Duration(days: i));
+      final diaNombre = _nombreDiaSemana(fecha.weekday);
+
+      for (var esquema in _esquemas) {
+        if (esquema.dias.contains(diaNombre)) {
+          _dosisGeneradas.add(
+            DosisDiaria(
+              fecha: fecha,
+              dosis: esquema.dosis,
+              hora: esquema.hora,
+              diaSemana: diaNombre,
+            ),
+          );
+        }
+      }
+    }
+
+    _dosisGeneradas.sort((a, b) => b.fecha.compareTo(a.fecha));
+    if (!silent) notifyListeners();
+  }
+
+  String _nombreDiaSemana(int weekday) {
+    const dias = [
+      "lunes",
+      "martes",
+      "miércoles",
+      "jueves",
+      "viernes",
+      "sábado",
+      "domingo",
+    ];
+    return dias[weekday - 1];
+  }
+
+  void confirmarTomaDelDia() {
+    final hoy = DateTime.now();
+
+    for (var item in _dosisGeneradas) {
+      if (_esMismoDia(item.fecha, hoy) && !item.tomada) {
+        item.tomada = true;
+        item.horaToma = DateTime.now();
+
+        final ahora = TimeOfDay.now();
+        final horaProgramada = _parseHora(item.hora);
+        final minutosDiferencia = _diferenciaEnMinutos(ahora, horaProgramada);
+
+        item.estado =
+            minutosDiferencia.abs() <= 30
+                ? 'ok'
+                : minutosDiferencia > 30
+                ? 'falta'
+                : 'tarde';
+
+        notifyListeners();
+        return;
+      }
+    }
+  }
+
+  TimeOfDay _parseHora(String hhmm) {
+    final partes = hhmm.split(':');
+    return TimeOfDay(hour: int.parse(partes[0]), minute: int.parse(partes[1]));
+  }
+
+  int _diferenciaEnMinutos(TimeOfDay a, TimeOfDay b) {
+    return (a.hour * 60 + a.minute) - (b.hour * 60 + b.minute);
+  }
+
+  bool _esMismoDia(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  void marcarFaltas() {
+    final ahora = DateTime.now();
+    final hoy = DateTime(ahora.year, ahora.month, ahora.day);
+
+    for (var dosis in dosisGeneradas) {
+      final fechaDosis = DateTime(
+        dosis.fecha.year,
+        dosis.fecha.month,
+        dosis.fecha.day,
+      );
+
+      if (!dosis.tomada && fechaDosis.isBefore(hoy)) {
+        dosis.estado = 'falta'; // ¡Aquí se marca correctamente!
+      } else if (!dosis.tomada && fechaDosis.isAtSameMomentAs(hoy)) {
+        dosis.estado = 'pendiente';
+      }
+    }
+
+    notifyListeners();
   }
 }

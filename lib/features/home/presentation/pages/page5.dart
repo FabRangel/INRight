@@ -1,11 +1,11 @@
-import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:inright/features/home/presentation/widgets/animatedRegisterItem.dart';
-import 'package:inright/features/home/presentation/widgets/registerItem.dart';
+import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:inright/features/home/domain/providers/medication_config_provider.dart';
 
+/// Página que muestra la próxima dosis, su estatus y el historial agrupado.
 class Page5 extends StatefulWidget {
   const Page5({super.key});
 
@@ -15,467 +15,137 @@ class Page5 extends StatefulWidget {
 
 class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  bool isDelayed = false;
-  late String message;
-  late Timer timer;
-  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+  String message = '';
+  Timer? timer;
+  bool hasNotified = false; // evita spam de notificaciones
+
+  final FlutterLocalNotificationsPlugin _notifier =
       FlutterLocalNotificationsPlugin();
 
-  bool hasNotified = false; // Para evitar notificación duplicada
-
-  final List<Map<String, dynamic>> registerData = [
-    {
-      "value": "4 mg",
-      "period": "Mañana",
-      "time": "09:00",
-      "taken": false,
-      "date": DateTime.now(), // Hoy
-    },
-    {
-      "value": "4 mg",
-      "period": "Mañana",
-      "time": "09:00",
-      "taken": true,
-      "date": DateTime.now().subtract(const Duration(days: 1)), // Ayer
-    },
-    {
-      "value": "4 mg",
-      "period": "Noche",
-      "time": "21:00",
-      "taken": true,
-      "date": DateTime.now().subtract(const Duration(days: 2)), // Antier
-    },
-  ];
-
+  // ───────────────────────────── CICLO DE VIDA ─────────────────────────────
   @override
   void initState() {
     super.initState();
 
-    const AndroidInitializationSettings androidSettings =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
-
-    const DarwinInitializationSettings iosSettings =
-        DarwinInitializationSettings();
-
-    const InitializationSettings initializationSettings =
-        InitializationSettings(android: androidSettings, iOS: iosSettings);
-
-    flutterLocalNotificationsPlugin.initialize(initializationSettings);
-
-    // Luego tu animación y timer:
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
+    )..forward();
+
+    // Init local notifications
+    const initSettings = InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+      iOS: DarwinInitializationSettings(),
     );
-    _controller.forward();
+    _notifier.initialize(initSettings);
 
-    final doseTime = registerData.first['time'];
-    message = getDoseMessage(doseTime);
+    // Asegúrate de que existan dosis antes de calcular mensaje
+    Future.microtask(_inicializarMensajeYTimer);
 
-    // Actualizar cada minuto
-    timer = Timer.periodic(const Duration(minutes: 1), (timer) {
-      setState(() {
-        message = getDoseMessage(doseTime);
-      });
+    // Genera dosis y marca faltas después de build
+    Future.delayed(const Duration(milliseconds: 100), () {
+      final provider = Provider.of<MedicationConfigProvider>(
+        context,
+        listen: false,
+      );
+      //provider.generarDosisSegunEsquema(silent: true);
+      //provider.marcarFaltas();
+    });
+  }
+
+  void _inicializarMensajeYTimer() {
+    final provider = Provider.of<MedicationConfigProvider>(
+      context,
+      listen: false,
+    );
+    final hoy = DateTime.now();
+    final dosisHoy = provider.dosisGeneradas.firstWhere(
+      (d) => _esMismoDia(d.fecha, hoy),
+      orElse:
+          () => DosisDiaria(fecha: hoy, dosis: 0, hora: '00:00', diaSemana: ''),
+    );
+
+    setState(() => message = _getDoseMessage(dosisHoy.hora));
+
+    timer = Timer.periodic(const Duration(minutes: 1), (_) {
+      final nuevo = _getDoseMessage(dosisHoy.hora);
+      if (nuevo != message) setState(() => message = nuevo);
     });
   }
 
   @override
   void dispose() {
     _controller.dispose();
-    timer.cancel();
+    timer?.cancel();
     super.dispose();
   }
 
-  String getDoseMessage(String doseTimeStr) {
-    final now = DateTime.now();
-    final nowTime = TimeOfDay.fromDateTime(now);
-
-    final parts = doseTimeStr.split(':');
-    final doseHour = int.parse(parts[0]);
-    final doseMinute = int.parse(parts[1]);
-    final doseTime = TimeOfDay(hour: doseHour, minute: doseMinute);
-
-    final nowInMinutes = nowTime.hour * 60 + nowTime.minute;
-    final doseInMinutes = doseTime.hour * 60 + doseTime.minute;
-    final diff = doseInMinutes - nowInMinutes;
-
-    setState(() {
-      isDelayed = diff < 0;
-    });
-
-    if (diff < 0 && !hasNotified) {
-      hasNotified = true; // ya notificamos
-      showDelayedNotification();
-    }
-
-    if (diff == 0) {
-      return "Es hora de tu dosis";
-    } else if (diff > 0) {
-      return "Faltan ${diff ~/ 60}h ${diff % 60}m para tu dosis";
-    } else {
-      return "Te retrasaste ${-diff ~/ 60}h ${-diff % 60}m";
-    }
-  }
-
+  // ─────────────────────────────── BUILD ──────────────────────────────────
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final topPadding = MediaQuery.of(context).padding.top;
+    final provider = Provider.of<MedicationConfigProvider>(context);
+    final dosis = provider.dosisGeneradas;
 
-    final String doseTime = registerData.first['time'];
-    final String doseValue = registerData.first['value'];
-    final String message = getDoseMessage(doseTime);
+    final hoy = DateTime.now();
+    final proxima = dosis.firstWhere(
+      (d) => _esMismoDia(d.fecha, hoy),
+      orElse:
+          () => DosisDiaria(fecha: hoy, dosis: 0, hora: '00:00', diaSemana: ''),
+    );
 
-    Map<String, List<Map<String, dynamic>>> groupedData = {};
-
-    for (var item in registerData) {
-      final DateTime date = item['date'] ?? DateTime.now();
-
-      final String key = _getRelativeDateLabel(date); // Hoy, Ayer, etc.
-      if (!groupedData.containsKey(key)) {
-        groupedData[key] = [];
-      }
-      groupedData[key]!.add(item);
+    final grouped = <String, List<DosisDiaria>>{};
+    for (var d in dosis) {
+      final label = _getRelativeDateLabel(d.fecha);
+      grouped.putIfAbsent(label, () => []).add(d);
     }
 
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 247, 247, 249),
-      body: Stack(
+      backgroundColor: const Color(0xFFF7F7F9),
+      body: Column(
         children: [
-          Column(
+          _buildHeader(proxima),
+          _buildStatusAndConfirm(provider),
+          _buildDoseHistory(grouped),
+        ],
+      ),
+    );
+  }
+
+  // ────────────────────────────── HEADER ──────────────────────────────────
+  Widget _buildHeader(DosisDiaria proxima) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 60, 20, 40),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFFBFE8EE), Color(0xFF62BFE4), Color(0xFF72C1E0)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(50)),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            'Próxima dosis',
+            style: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          Text(
+            '${proxima.dosis} mg',
+            style: const TextStyle(
+              fontSize: 40,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ClipPath(
-                clipper: CustomWaveClipper(),
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.only(
-                    top: topPadding + 10,
-                    left: 20,
-                    right: 20,
-                    bottom: 40,
-                  ),
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Color.fromARGB(255, 191, 232, 238),
-                        Color.fromARGB(255, 98, 191, 228),
-                        Color.fromARGB(255, 114, 193, 224),
-                      ],
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                    ),
-                    borderRadius: BorderRadius.only(
-                      bottomLeft: Radius.circular(50),
-                      bottomRight: Radius.circular(50),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: const [
-                      Text(
-                        "Próxima dosis",
-                        style: TextStyle(color: Colors.white, fontSize: 20),
-                      ),
-                      SizedBox(height: 5),
-                      Text(
-                        "4 mg",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 40,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.access_time, color: Colors.white),
-                          SizedBox(width: 10),
-                          Text(
-                            "09:00",
-                            style: TextStyle(color: Colors.white, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Column(
-                            children: [
-                              Text(
-                                "Mañana",
-                                style: TextStyle(
-                                  color: Colors.white70,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              SizedBox(height: 2),
-                              Text(
-                                "09:00",
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              AnimatedSlide(
-                offset: const Offset(0, 0.1),
-                duration: const Duration(milliseconds: 600),
-                curve: Curves.easeOut,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 600),
-                  opacity: 1.0,
-                  child: Transform.translate(
-                    offset: const Offset(0, -40),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 10,
-                      ),
-                      decoration: BoxDecoration(
-                        color:
-                            isDelayed
-                                ? Colors.red.shade300
-                                : const Color(0xFFFFF3CD),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black12.withOpacity(0.1),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              const CircleAvatar(
-                                backgroundColor: Colors.white,
-                                child: Icon(
-                                  Icons.access_time,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Text(
-                                "Es hora de tu dosis",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color:
-                                      isDelayed ? Colors.white : Colors.brown,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            message,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: isDelayed ? Colors.white : Colors.brown,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Center(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    elevation: 0,
-                                    behavior: SnackBarBehavior.floating,
-                                    backgroundColor: Colors.transparent,
-                                    content: AwesomeSnackbarContent(
-                                      title: 'Error',
-                                      message:
-                                          'No se pudo registrar la toma. Intenta de nuevo.',
-                                      contentType: ContentType.failure,
-                                    ),
-                                  ),
-                                );
-                              },
-
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.white,
-                                foregroundColor:
-                                    isDelayed ? Colors.red : Colors.orange,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                  horizontal: 24,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30),
-                                ),
-                              ),
-                              child: const Text("Confirmar toma"),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 0),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
-                  child: Column(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        margin: const EdgeInsets.only(bottom: 20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black12.withOpacity(0.05),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: const [
-                                Text(
-                                  'Registro de tomas',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 10),
-
-                            const SizedBox(height: 12),
-                            ...groupedData.entries.map((entry) {
-                              final label = entry.key;
-                              final items = entry.value;
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    label,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 10),
-                                  ...items.map((item) {
-                                    final bool isTaken =
-                                        (item['taken'] ?? false) as bool;
-                                    final bgColor =
-                                        isTaken
-                                            ? const Color(0xFFE7F8EB)
-                                            : const Color.fromARGB(
-                                              255,
-                                              255,
-                                              230,
-                                              225,
-                                            );
-                                    final icon =
-                                        isTaken
-                                            ? Icons.check
-                                            : Icons.access_time;
-                                    final iconColor =
-                                        isTaken
-                                            ? Colors.green
-                                            : Colors.redAccent;
-                                    final timeColor =
-                                        isTaken
-                                            ? Colors.green
-                                            : Colors.redAccent;
-
-                                    return Container(
-                                      margin: const EdgeInsets.only(bottom: 12),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 14,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: bgColor,
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 16,
-                                            backgroundColor: Colors.white,
-                                            child: Icon(
-                                              icon,
-                                              color: iconColor,
-                                              size: 20,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  item['value'],
-                                                  style: const TextStyle(
-                                                    fontWeight: FontWeight.w600,
-                                                    fontSize: 16,
-                                                  ),
-                                                ),
-                                                Text(
-                                                  item['period'],
-                                                  style: const TextStyle(
-                                                    fontSize: 14,
-                                                    color: Colors.black54,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          Text(
-                                            item['time'],
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w500,
-                                              color: timeColor,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  }),
-                                  const SizedBox(height: 16),
-                                ],
-                              );
-                            }),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              const Icon(Icons.access_time, color: Colors.white),
+              const SizedBox(width: 10),
+              Text(
+                proxima.hora,
+                style: const TextStyle(color: Colors.white, fontSize: 14),
               ),
             ],
           ),
@@ -484,53 +154,376 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
     );
   }
 
-  Future<void> showDelayedNotification() async {
-    const androidDetails = AndroidNotificationDetails(
+  // ────────────────────────────── STATUS ─────────────────────────────────
+  Widget _buildStatusAndConfirm(MedicationConfigProvider provider) {
+    final hoy = DateTime.now();
+    final dosisHoy = provider.dosisGeneradas.firstWhere(
+      (d) => _esMismoDia(d.fecha, hoy),
+      orElse:
+          () => DosisDiaria(fecha: hoy, dosis: 0, hora: '00:00', diaSemana: ''),
+    );
+
+    final colores = _colorsForMessage(message);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: colores['bg'],
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(colores['icon'], color: colores['fg']),
+                const SizedBox(width: 10),
+                Flexible(
+                  child: Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: colores['fg'],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                if (dosisHoy.tomada) {
+                  setState(() {
+                    dosisHoy
+                      ..tomada = false
+                      ..horaToma = null
+                      ..estado = 'pendiente';
+                  });
+                  _showSnack(
+                    'Toma cancelada',
+                    'Has desconfirmado tu dosis.',
+                    ContentType.warning,
+                  );
+                } else {
+                  provider.confirmarTomaDelDia();
+                  setState(() {
+                    final siguiente = _buscarSiguienteDosis(
+                      provider,
+                      DateTime.now(),
+                    );
+                    if (siguiente != null) {
+                      final diff = siguiente.difference(DateTime.now());
+                      message =
+                          'Faltan ${diff.inHours}h ${diff.inMinutes % 60}m para tu próxima dosis';
+                    }
+                  });
+                  _showSnack(
+                    '¡Toma registrada!',
+                    'Has confirmado tu dosis correctamente.',
+                    ContentType.success,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    dosisHoy.tomada ? const Color(0xFF67CBF0) : Colors.green,
+                foregroundColor: Colors.white,
+                minimumSize: const Size.fromHeight(48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30),
+                ),
+              ),
+              icon: Icon(
+                dosisHoy.tomada ? Icons.cancel : Icons.check_circle,
+                size: 24,
+                color: Colors.white,
+              ),
+              label: Text(
+                dosisHoy.tomada ? 'Cancelar toma' : 'Confirmar toma',
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ──────────────────────────── HISTORIAL ────────────────────────────────
+  Widget _buildDoseHistory(Map<String, List<DosisDiaria>> grouped) {
+    return Expanded(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
+        child: Column(
+          children:
+              grouped.entries.map((entry) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      entry.key,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    ...entry.value.map(_buildDoseTile).toList(),
+                    const SizedBox(height: 16),
+                  ],
+                );
+              }).toList(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDoseTile(DosisDiaria d) {
+    final estado = d.estado.trim().toLowerCase();
+    final bgColor =
+        d.tomada
+            ? const Color(0xFFE7F8EB)
+            : (estado == 'falta'
+                ? const Color(0xFFFFE0E0)
+                : const Color(0xFFFFF3CD));
+    final icon =
+        d.tomada
+            ? Icons.check
+            : (estado == 'falta' ? Icons.cancel : Icons.access_time);
+    final iconColor =
+        d.tomada
+            ? Colors.green
+            : (estado == 'falta' ? Colors.red : Colors.orange);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: Colors.white,
+            child: Icon(icon, color: iconColor, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${d.dosis} mg',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                  ),
+                ),
+                Text(
+                  _estadoLegible(d),
+                  style: const TextStyle(fontSize: 14, color: Colors.black54),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            d.horaToma != null
+                ? '${d.horaToma!.hour.toString().padLeft(2, '0')}:${d.horaToma!.minute.toString().padLeft(2, '0')}'
+                : d.hora,
+            style: TextStyle(fontWeight: FontWeight.w500, color: iconColor),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ───────────────────────────── UTILIDADES ──────────────────────────────
+  Map<String, dynamic> _colorsForMessage(String msg) {
+    if (msg.contains('retraso') || msg.contains('Te retrasaste')) {
+      return {
+        'bg': const Color(0xFFFFE0E0),
+        'fg': Colors.red,
+        'icon': Icons.warning_amber_rounded,
+      };
+    } else if (msg.contains('hora de tu dosis')) {
+      return {
+        'bg': const Color(0xFFFFF3CD),
+        'fg': Colors.orange,
+        'icon': Icons.access_time,
+      };
+    } else {
+      return {
+        'bg': const Color(0xFFE7F8EB),
+        'fg': Colors.green,
+        'icon': Icons.access_time,
+      };
+    }
+  }
+
+  String _getDoseMessage(String doseTimeStr) {
+    final now = DateTime.now();
+    final provider = Provider.of<MedicationConfigProvider>(
+      context,
+      listen: false,
+    );
+
+    // a) Si la dosis de hoy está confirmada → mostrar siguiente pendiente
+    final dosisHoy = provider.dosisGeneradas.firstWhere(
+      (d) => _esMismoDia(d.fecha, now),
+      orElse:
+          () => DosisDiaria(fecha: now, dosis: 0, hora: '00:00', diaSemana: ''),
+    );
+
+    if (dosisHoy.tomada) {
+      final siguiente = _buscarSiguienteDosis(provider, now);
+      if (siguiente == null) return 'No hay próximas dosis programadas';
+
+      final diff = siguiente.difference(now);
+      final h = diff.inHours;
+      final m = diff.inMinutes % 60;
+      return 'Faltan ${h}h ${m}m para tu próxima dosis';
+    }
+
+    // b) Si todavía no la has tomado → lógica de antes
+    final partes = doseTimeStr.split(':');
+    final fechaHoraDosis = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(partes[0]),
+      int.parse(partes[1]),
+    );
+
+    if (fechaHoraDosis.isAfter(now)) {
+      final diff = fechaHoraDosis.difference(now);
+      final h = diff.inHours;
+      final m = diff.inMinutes % 60;
+      return 'Faltan ${h}h ${m}m para tu dosis';
+    }
+
+    final retraso = now.difference(fechaHoraDosis);
+    final h = retraso.inHours;
+    final m = retraso.inMinutes % 60;
+    return 'Te retrasaste ${h}h ${m}m';
+  }
+
+  /// Devuelve la fecha/hora de la siguiente dosis pendiente después de `desde`.
+  DateTime? _buscarSiguienteDosis(MedicationConfigProvider p, DateTime desde) {
+    final pendientes =
+        p.dosisGeneradas.where((d) {
+            if (d.tomada) return false;
+            final partes = d.hora.split(':');
+            final fh = DateTime(
+              d.fecha.year,
+              d.fecha.month,
+              d.fecha.day,
+              int.parse(partes[0]),
+              int.parse(partes[1]),
+            );
+            return fh.isAfter(desde);
+          }).toList()
+          ..sort((a, b) {
+            DateTime fa(DosisDiaria d) {
+              final parts = d.hora.split(':');
+              return DateTime(
+                d.fecha.year,
+                d.fecha.month,
+                d.fecha.day,
+                int.parse(parts[0]),
+                int.parse(parts[1]),
+              );
+            }
+
+            return fa(a).compareTo(fa(b));
+          });
+
+    if (pendientes.isEmpty) return null;
+
+    final prox = pendientes.first;
+    final pParts = prox.hora.split(':');
+    return DateTime(
+      prox.fecha.year,
+      prox.fecha.month,
+      prox.fecha.day,
+      int.parse(pParts[0]),
+      int.parse(pParts[1]),
+    );
+  }
+
+  void _showSnack(String title, String msg, ContentType type) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        elevation: 0,
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        content: AwesomeSnackbarContent(
+          title: title,
+          message: msg,
+          contentType: type,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _showDelayedNotification() async {
+    const android = AndroidNotificationDetails(
       'dose_channel',
       'Dosis Retrasada',
       channelDescription: 'Te notifica si olvidaste tu dosis',
       importance: Importance.max,
       priority: Priority.high,
-      playSound: true,
     );
-
-    const notificationDetails = NotificationDetails(android: androidDetails);
-
-    await flutterLocalNotificationsPlugin.show(
+    await _notifier.show(
       0,
       '¡Dosis retrasada!',
       'Ya pasó la hora de tomar tu medicamento',
-      notificationDetails,
+      NotificationDetails(android: android),
     );
   }
-}
 
-class CustomWaveClipper extends CustomClipper<Path> {
-  @override
-  Path getClip(Size size) {
-    Path path = Path();
-    path.lineTo(3, size.height * 0.8);
-    path.quadraticBezierTo(
-      size.width * 0.2,
-      size.height,
-      size.width,
-      size.height * 0.79,
+  bool _esMismoDia(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  String _estadoLegible(DosisDiaria d) {
+    final hoy = DateTime(
+      DateTime.now().year,
+      DateTime.now().month,
+      DateTime.now().day,
     );
-    path.lineTo(size.width, 0);
-    path.close();
-    return path;
+    final fechaD = DateTime(d.fecha.year, d.fecha.month, d.fecha.day);
+
+    if (d.tomada) {
+      return 'Tomada a las ${d.horaToma!.hour.toString().padLeft(2, '0')}:${d.horaToma!.minute.toString().padLeft(2, '0')}';
+    } else if (fechaD.isBefore(hoy)) {
+      return 'FALTA';
+    }
+    return 'PENDIENTE';
   }
 
-  @override
-  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
-}
-
-String _getRelativeDateLabel(DateTime date) {
-  final now = DateTime.now();
-  final difference = now.difference(date).inDays;
-
-  if (difference == 0) return "Hoy";
-  if (difference == 1) return "Ayer";
-  if (difference == 2) return "Antier";
-  return "${date.day}/${date.month}/${date.year}";
+  String _getRelativeDateLabel(DateTime date) {
+    final diff = DateTime.now().difference(date).inDays;
+    if (diff == 0) return 'Hoy';
+    if (diff == 1) return 'Ayer';
+    if (diff == 2) return 'Antier';
+    return '${date.day}/${date.month}/${date.year}';
+  }
 }

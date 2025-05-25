@@ -1,12 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:inright/features/home/domain/providers/medication_config_provider.dart';
 import 'package:inright/features/home/presentation/widgets/tarjetaIndicador.dart';
 import 'package:inright/features/home/presentation/widgets/dosisHistorial.dart';
+import 'package:provider/provider.dart';
+
+String obtenerDiaActual() {
+  final dias = [
+    "lunes",
+    "martes",
+    "miércoles",
+    "jueves",
+    "viernes",
+    "sábado",
+    "domingo",
+  ];
+  return dias[DateTime.now().weekday - 1];
+}
 
 class Page4 extends StatelessWidget {
   const Page4({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<MedicationConfigProvider>(context);
+    final esquemaActual =
+        provider.esquemas.isNotEmpty ? provider.esquemas[0] : null;
+    final String diaActual = obtenerDiaActual();
+    final historial = provider.historial;
+    final esquemaDelDia = provider.esquemas.firstWhere(
+      (e) => e.dias.contains(diaActual),
+      orElse: () => MedicationSchema(dosis: 0.0, dias: [], hora: "--:--"),
+    );
     return Scaffold(
       backgroundColor: const Color(0xFFFDF6FB),
       body: Stack(
@@ -55,34 +79,41 @@ class Page4 extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  const Center(
+                  Center(
                     child: Text(
-                      '7.5 mg',
-                      style: TextStyle(
+                      '${esquemaDelDia?.dosis ?? 0.0} mg',
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 40,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                   ),
-                  const Center(
+                  Center(
                     child: Text(
-                      '9:00 pm',
-                      style: TextStyle(color: Colors.white70),
+                      '${esquemaDelDia?.hora ?? '--:--'} hrs',
+                      style: const TextStyle(color: Colors.white70),
                     ),
                   ),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: const [
-                      _DiaTexto('L'),
-                      _DiaTexto('M'),
-                      _DiaTexto('X'),
-                      _DiaTexto('J', seleccionado: true),
-                      _DiaTexto('V'),
-                      _DiaTexto('S'),
-                      _DiaTexto('D'),
-                    ],
+                    children:
+                        ["L", "M", "X", "J", "V", "S", "D"].map((letra) {
+                          final diasMap = {
+                            "L": "lunes",
+                            "M": "martes",
+                            "X": "miércoles",
+                            "J": "jueves",
+                            "V": "viernes",
+                            "S": "sábado",
+                            "D": "domingo",
+                          };
+                          final diaCompleto = diasMap[letra]!;
+                          final seleccionado = diaCompleto == diaActual;
+
+                          return _DiaTexto(letra, seleccionado: seleccionado);
+                        }).toList(),
                   ),
                 ],
               ),
@@ -132,45 +163,22 @@ class Page4 extends StatelessWidget {
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text(
+                        children: [
+                          const Text(
                             'Historial de dosis',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                             ),
                           ),
-                          SizedBox(height: 16),
-                          ItemHistorial(
-                            estado: 'ok',
-                            dosis: '7.5 mg',
-                            hora: '09:00',
-                            fecha: '15 Ene',
-                          ),
-                          ItemHistorial(
-                            estado: 'ok',
-                            dosis: '7.5 mg',
-                            hora: '09:15',
-                            fecha: '14 Ene',
-                          ),
-                          ItemHistorial(
-                            estado: 'ok',
-                            dosis: '7.5 mg',
-                            hora: '09:30',
-                            fecha: '13 Ene',
-                          ),
-                          ItemHistorial(
-                            estado: 'tarde',
-                            dosis: '7.5 mg',
-                            hora: '10:15',
-                            fecha: '12 Ene',
-                          ),
-                          ItemHistorial(
-                            estado: 'falta',
-                            dosis: '7.5 mg',
-                            hora: '--',
-                            fecha: '11 Ene',
-                          ),
+                          const SizedBox(height: 16),
+                          for (final item in historial)
+                            ItemHistorial(
+                              estado: item.estado,
+                              dosis: item.dosis,
+                              hora: item.hora,
+                              fecha: item.fecha,
+                            ),
                         ],
                       ),
                     ),
