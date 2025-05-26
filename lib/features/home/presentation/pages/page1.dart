@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:inright/features/home/domain/providers/inrProvider.dart';
 import 'package:inright/features/home/presentation/widgets/tendenciaData.dart';
 import 'package:inright/features/home/presentation/widgets/legendItem.dart';
 import 'package:inright/features/home/presentation/widgets/buildEstabilidadCard.dart';
 import 'package:inright/features/home/presentation/widgets/buildTendenciaCard.dart';
 import 'package:inright/features/home/presentation/widgets/buildHistorialCard.dart';
+import 'package:provider/provider.dart';
 
 class Page1 extends StatefulWidget {
   const Page1({Key? key}) : super(key: key);
@@ -13,7 +15,37 @@ class Page1 extends StatefulWidget {
 }
 
 class _Page1State extends State<Page1> {
-  String modoSeleccionado = 'Semanal'; // Valor por defecto
+  String modoSeleccionado = 'Semanal';
+  final ScrollController _scrollController = ScrollController();
+  int _currentPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      final provider = Provider.of<InrProvider>(context, listen: false);
+      provider.fetchInr();
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToPage(int pageIndex) {
+    // 24 ancho + 12 spacing * 7 barras + 16 de padding por grupo
+    final offset = pageIndex * ((24.0 + 12.0) * 7 + 16);
+    _scrollController.animateTo(
+      offset,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
+    setState(() {
+      _currentPage = pageIndex;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,11 +94,9 @@ class _Page1State extends State<Page1> {
                     ),
                     Row(
                       children: [
-                        _buildModeButton('Diario'),
+                        _buildModeButton('7 Registros', ModoInr.semanal),
                         const SizedBox(width: 4),
-                        _buildModeButton('Semanal'),
-                        const SizedBox(width: 4),
-                        _buildModeButton('Mensual'),
+                        _buildModeButton('31 Registros', ModoInr.mensual),
                       ],
                     ),
                   ],
@@ -86,13 +116,22 @@ class _Page1State extends State<Page1> {
                         'Promedio',
                         style: TextStyle(color: Colors.white70, fontSize: 16),
                       ),
-                      const Text(
-                        '2.8',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      Consumer<InrProvider>(
+                        builder: (context, provider, child) {
+                          if (provider.loading) {
+                            return const CircularProgressIndicator(
+                              color: Colors.white,
+                            );
+                          }
+                          return Text(
+                            provider.promedio.toStringAsFixed(1),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          );
+                        },
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -107,10 +146,140 @@ class _Page1State extends State<Page1> {
                         ],
                       ),
                       const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: _buildBars(),
+                      Consumer<InrProvider>(
+                        builder: (context, provider, child) {
+                          if (provider.loading) {
+                            return const SizedBox(
+                              height: 160,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              ),
+                            );
+                          }
+
+                          final datos = provider.inrFiltrado;
+                          final isMensual = provider.modo == ModoInr.mensual;
+
+                          final maxValue = datos
+                              .where((e) => e['value'] != null)
+                              .map((e) => (e['value'] as num).toDouble())
+                              .fold<double>(
+                                0.0,
+                                (prev, val) => val > prev ? val : prev,
+                              );
+
+                          final datosCopiados = List<Map<String, dynamic>>.from(
+                            datos,
+                          );
+                          final groups = <List<Map<String, dynamic>>>[];
+
+                          for (int i = 0; i < datosCopiados.length; i += 7) {
+                            final end =
+                                (i + 7 > datosCopiados.length)
+                                    ? datosCopiados.length
+                                    : i + 7;
+                            final group = datosCopiados.sublist(i, end);
+
+                            // Rellenar solo el último grupo si tiene menos de 7
+                            if (group.length < 7 &&
+                                i + 7 >= datosCopiados.length) {
+                              while (group.length < 7) {
+                                group.add({'value': null, 'date': ''});
+                              }
+                            }
+
+                            groups.add(group);
+                          }
+
+                          final pageCount = groups.length;
+
+                          return LayoutBuilder(
+                            builder: (context, constraints) {
+                              final pageWidth = constraints.maxWidth;
+
+                              return SizedBox(
+                                height: 160,
+                                child: Stack(
+                                  children: [
+                                    ListView.builder(
+                                      controller: _scrollController,
+                                      scrollDirection: Axis.horizontal,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      itemCount: pageCount,
+                                      itemBuilder: (context, index) {
+                                        final grupo = groups[index];
+
+                                        // Cálculo de espacio dinámico
+                                        const spacing = 12.0;
+                                        final totalSpacing =
+                                            spacing * (grupo.length - 1);
+                                        final barWidth =
+                                            (pageWidth - totalSpacing) /
+                                            grupo.length;
+
+                                        return SizedBox(
+                                          width:
+                                              pageWidth, // ← fuerza a ocupar todo el ancho
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.end,
+                                            children:
+                                                grupo.map((e) {
+                                                  return _buildBar(
+                                                    e,
+                                                    maxValue,
+                                                    barWidth,
+                                                  );
+                                                }).toList(),
+                                          ),
+                                        );
+                                      },
+                                    ),
+
+                                    // ← Flecha izquierda
+                                    if (_currentPage > 0)
+                                      Positioned(
+                                        left: 0,
+                                        top: 50,
+                                        child: IconButton(
+                                          icon: const Icon(
+                                            Icons.arrow_back_ios,
+                                            color: Colors.white,
+                                          ),
+                                          onPressed:
+                                              () => _scrollToPage(
+                                                _currentPage - 1,
+                                              ),
+                                        ),
+                                      ),
+
+                                    // → Flecha derecha
+                                    if (_currentPage < pageCount - 1)
+                                      Positioned(
+                                        right: 0,
+                                        top: 50,
+                                        child: IconButton(
+                                          icon: const Icon(
+                                            Icons.arrow_forward_ios,
+                                            color: Colors.white,
+                                          ),
+                                          onPressed:
+                                              () => _scrollToPage(
+                                                _currentPage + 1,
+                                              ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -143,25 +312,87 @@ class _Page1State extends State<Page1> {
     );
   }
 
-  Widget _buildModeButton(String label) {
-    final bool isSelected = label == modoSeleccionado;
-
-    return ElevatedButton(
-      onPressed: () {
-        setState(() {
-          modoSeleccionado = label;
-        });
+  _buildModeButton(String label, ModoInr modo) {
+    return Consumer<InrProvider>(
+      builder: (context, provider, child) {
+        final isSelected = provider.modo == modo;
+        return GestureDetector(
+          onTap: () {
+            setState(() {
+              _currentPage = 0;
+            });
+            provider.setModo(modo);
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.blue : Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        );
       },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: isSelected ? Colors.white : Colors.white24,
-        foregroundColor: isSelected ? Colors.black : Colors.white,
-        shape: const StadiumBorder(),
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        elevation: 0,
-      ),
-      child: Text(label),
     );
   }
+}
+
+Widget _buildBar(Map<String, dynamic> data, double maxValue, double width) {
+  final value = data['value'];
+  final fecha = data['date'];
+
+  if (value == null) {
+    // Espacio vacío
+    return SizedBox(
+      width: width,
+      height: 80,
+      child: const Center(
+        child: Text('-', style: TextStyle(color: Colors.white38, fontSize: 12)),
+      ),
+    );
+  }
+
+  final double val = (value as num).toDouble();
+  final barHeight = maxValue == 0 ? 0 : (val / maxValue) * 80;
+  final barColor = val >= 2.0 && val <= 3.0 ? Colors.green : Colors.red;
+
+  String fechaCorta = '';
+  if (fecha is String && fecha.contains('-')) {
+    // formato yyyy-mm-dd → mm/dd
+    final partes = fecha.split('-');
+    if (partes.length == 3) {
+      fechaCorta = '${partes[1]}/${partes[2]}';
+    }
+  }
+
+  return Column(
+    mainAxisAlignment: MainAxisAlignment.end,
+    children: [
+      Container(
+        width: width,
+        height: barHeight.toDouble(),
+        decoration: BoxDecoration(
+          color: barColor,
+          borderRadius: BorderRadius.circular(4),
+        ),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        val.toStringAsFixed(1),
+        style: const TextStyle(color: Colors.white, fontSize: 10),
+      ),
+      Text(
+        fechaCorta,
+        style: const TextStyle(color: Colors.white70, fontSize: 10),
+      ),
+    ],
+  );
 }
 
 List<Widget> _buildBars() {
@@ -197,6 +428,24 @@ List<Widget> _buildBars() {
           style: const TextStyle(fontSize: 10, color: Colors.white),
         ),
       ],
+    );
+  }).toList();
+}
+
+List<Widget> buildBarsFromData(List<double> values) {
+  final maxValue =
+      values.isEmpty ? 1.0 : values.reduce((a, b) => a > b ? a : b);
+  return values.map((value) {
+    final isInRange = value >= 2.0 && value <= 3.0;
+    return Flexible(
+      child: Container(
+        height: (value / maxValue) * 100, // Altura proporcional
+        decoration: BoxDecoration(
+          color: isInRange ? Colors.green : Colors.red,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        margin: const EdgeInsets.symmetric(horizontal: 4),
+      ),
     );
   }).toList();
 }

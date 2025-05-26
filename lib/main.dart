@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inright/features/home/domain/providers/inrProvider.dart';
 import 'package:inright/features/home/presentation/pages/configurations.dart';
 import 'package:inright/features/home/presentation/pages/page1.dart';
 import 'package:inright/features/home/presentation/pages/page2.dart';
@@ -36,6 +37,7 @@ void main() async {
             return provider;
           },
         ),
+        ChangeNotifierProvider(create: (_) => InrProvider()..fetchInr()),
       ],
       child: MainApp(isFirstTime: isFirstTime),
     ),
