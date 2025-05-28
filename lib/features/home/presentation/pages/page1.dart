@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inright/features/configurations/providers/medication_config_provider.dart';
 import 'package:inright/features/home/providers/inrProvider.dart';
 import 'package:inright/features/home/presentation/widgets/tendenciaData.dart';
 import 'package:inright/features/home/presentation/widgets/legendItem.dart';
@@ -47,8 +48,37 @@ class _Page1State extends State<Page1> {
     });
   }
 
+  double calcularEstabilidadDesdeDatos(
+    List<Map<String, dynamic>> datosInr,
+    RangeValues inrRange,
+  ) {
+    if (datosInr.isEmpty) return 0.0;
+
+    final valores =
+        datosInr
+            .map((e) => e['value'])
+            .where((v) => v != null)
+            .map((v) => (v as num).toDouble())
+            .toList();
+
+    final enRango =
+        valores
+            .where((val) => val >= inrRange.start && val <= inrRange.end)
+            .length;
+
+    return enRango / valores.length;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final inrProvider = Provider.of<InrProvider>(context);
+    final configProvider = Provider.of<MedicationConfigProvider>(context);
+    final inrRange = configProvider.inrRange;
+
+    final estabilidad = calcularEstabilidadDesdeDatos(
+      inrProvider.inrFiltrado,
+      inrRange,
+    );
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: Column(
@@ -231,6 +261,7 @@ class _Page1State extends State<Page1> {
                                             children:
                                                 grupo.map((e) {
                                                   return _buildBar(
+                                                    context,
                                                     e,
                                                     maxValue,
                                                     barWidth,
@@ -296,7 +327,9 @@ class _Page1State extends State<Page1> {
                 children: [
                   Row(
                     children: [
-                      Expanded(child: buildEstabilidadCard()),
+                      Expanded(
+                        child: BuildEstabilidadCard(estabilidad: estabilidad),
+                      ),
                       const SizedBox(width: 16),
                       Expanded(child: buildTendenciaCard()),
                     ],
@@ -343,7 +376,12 @@ class _Page1State extends State<Page1> {
   }
 }
 
-Widget _buildBar(Map<String, dynamic> data, double maxValue, double width) {
+Widget _buildBar(
+  BuildContext context,
+  Map<String, dynamic> data,
+  double maxValue,
+  double width,
+) {
   final value = data['value'];
   final fecha = data['date'];
 
@@ -360,7 +398,10 @@ Widget _buildBar(Map<String, dynamic> data, double maxValue, double width) {
 
   final double val = (value as num).toDouble();
   final barHeight = maxValue == 0 ? 0 : (val / maxValue) * 80;
-  final barColor = val >= 2.0 && val <= 3.0 ? Colors.green : Colors.red;
+  final range =
+      Provider.of<MedicationConfigProvider>(context, listen: false).inrRange;
+  final barColor =
+      val >= range.start && val <= range.end ? Colors.green : Colors.red;
 
   String fechaCorta = '';
   if (fecha is String && fecha.contains('-')) {

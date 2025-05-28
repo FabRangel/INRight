@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 
-class buildEstabilidadCard extends StatelessWidget {
-  const buildEstabilidadCard({super.key});
+class BuildEstabilidadCard extends StatelessWidget {
+  final double estabilidad; // 0.0 a 1.0
+
+  const BuildEstabilidadCard({Key? key, required this.estabilidad})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final fueraDeRango = 1.0 - estabilidad;
+    final porcentajeEstabilidad = (estabilidad * 100).toStringAsFixed(0);
+    final porcentajeFuera = (fueraDeRango * 100).toStringAsFixed(0);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -27,9 +34,9 @@ class buildEstabilidadCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Simulación de anillo
+          // Anillo de progreso
           SizedBox(
-            height: 120, //
+            height: 120,
             child: Stack(
               alignment: Alignment.center,
               children: [
@@ -37,15 +44,21 @@ class buildEstabilidadCard extends StatelessWidget {
                   width: 100,
                   height: 100,
                   child: CircularProgressIndicator(
-                    value: 0.75,
+                    value: estabilidad,
                     strokeWidth: 8,
                     backgroundColor: Colors.grey[200],
-                    color: Colors.green,
+                    color:
+                        estabilidad >= 0.6
+                            ? Colors.green
+                            : (estabilidad >= 0.3 ? Colors.orange : Colors.red),
                   ),
                 ),
-                const Text(
-                  '75%',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                Text(
+                  '$porcentajeEstabilidad%',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ],
             ),
@@ -54,24 +67,24 @@ class buildEstabilidadCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
+            children: [
               Column(
                 children: [
-                  Text('En rango', style: TextStyle(fontSize: 11)),
-                  SizedBox(height: 4),
+                  const Text('En rango', style: TextStyle(fontSize: 11)),
+                  const SizedBox(height: 4),
                   Text(
-                    '75%',
-                    style: TextStyle(fontSize: 12, color: Colors.green),
+                    '$porcentajeEstabilidad%',
+                    style: const TextStyle(fontSize: 12, color: Colors.green),
                   ),
                 ],
               ),
               Column(
                 children: [
-                  Text('Fuera de rango', style: TextStyle(fontSize: 11)),
-                  SizedBox(height: 4),
+                  const Text('Fuera de rango', style: TextStyle(fontSize: 11)),
+                  const SizedBox(height: 4),
                   Text(
-                    '25%',
-                    style: TextStyle(fontSize: 12, color: Colors.red),
+                    '$porcentajeFuera%',
+                    style: const TextStyle(fontSize: 12, color: Colors.red),
                   ),
                 ],
               ),
