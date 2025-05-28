@@ -2,11 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:inright/features/home/presentation/widgets/tendenciaData.dart';
 import 'package:fl_chart/fl_chart.dart';
 
-class buildTendenciaCard extends StatelessWidget {
-  const buildTendenciaCard({super.key});
+class BuildTendenciaCard extends StatelessWidget {
+  final List<double> valoresInr;
+
+  const BuildTendenciaCard({super.key, required this.valoresInr});
 
   @override
   Widget build(BuildContext context) {
+    if (valoresInr.isEmpty) {
+      return const Text("No hay datos suficientes");
+    }
+
+    final min = valoresInr.reduce((a, b) => a < b ? a : b);
+    final max = valoresInr.reduce((a, b) => a > b ? a : b);
+    final avg = valoresInr.reduce((a, b) => a + b) / valoresInr.length;
+
+    final spots = List.generate(
+      valoresInr.length,
+      (index) => FlSpot(index.toDouble(), valoresInr[index]),
+    );
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -29,7 +44,6 @@ class buildTendenciaCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
 
-          // Simulación de gráfico
           SizedBox(
             height: 120,
             child: LineChart(
@@ -57,14 +71,7 @@ class buildTendenciaCard extends StatelessWidget {
                       show: true,
                       color: Colors.green.withOpacity(0.1),
                     ),
-                    spots: [
-                      FlSpot(0, 2.0),
-                      FlSpot(1, 2.3),
-                      FlSpot(2, 2.1),
-                      FlSpot(3, 2.6),
-                      FlSpot(4, 3.0),
-                      FlSpot(5, 2.8),
-                    ],
+                    spots: spots,
                   ),
                 ],
               ),
@@ -74,13 +81,12 @@ class buildTendenciaCard extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: const [
-              TendenciaData(label: 'Min', value: '2.0'),
-              TendenciaData(label: 'Max', value: '3.0'),
-              TendenciaData(label: 'Promedio', value: '2.8'),
+            children: [
+              TendenciaData(label: 'Min', value: min.toStringAsFixed(1)),
+              TendenciaData(label: 'Max', value: max.toStringAsFixed(1)),
+              TendenciaData(label: 'Promedio', value: avg.toStringAsFixed(1)),
             ],
           ),
-          
         ],
       ),
     );

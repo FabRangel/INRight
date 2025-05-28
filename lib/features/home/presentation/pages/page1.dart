@@ -74,11 +74,17 @@ class _Page1State extends State<Page1> {
     final inrProvider = Provider.of<InrProvider>(context);
     final configProvider = Provider.of<MedicationConfigProvider>(context);
     final inrRange = configProvider.inrRange;
-
     final estabilidad = calcularEstabilidadDesdeDatos(
       inrProvider.inrFiltrado,
       inrRange,
     );
+    final valores =
+        inrProvider.inrFiltrado
+            .map((e) => e['value'])
+            .where((v) => v != null)
+            .map((v) => (v as num).toDouble())
+            .toList();
+
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: Column(
@@ -331,7 +337,7 @@ class _Page1State extends State<Page1> {
                         child: BuildEstabilidadCard(estabilidad: estabilidad),
                       ),
                       const SizedBox(width: 16),
-                      Expanded(child: buildTendenciaCard()),
+                      Expanded(child: BuildTendenciaCard(valoresInr: valores)),
                     ],
                   ),
                   const SizedBox(height: 30),
