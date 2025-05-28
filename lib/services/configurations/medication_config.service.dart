@@ -20,21 +20,30 @@ class MedicationConfigService {
         return;
       }
 
-      await _firestore
+      final configRef = _firestore
           .collection('personas')
           .doc(user.uid)
           .collection('configs')
-          .doc('medication')
-          .set({
-            'anticoagulante': data['anticoagulante'],
-            'dosis': data['dosis'],
-            'esquemas': data['esquemas'],
-            'inrRange': {
-              'start': data['inrRange']['start'],
-              'end': data['inrRange']['end'],
-            },
-            'updatedAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
+          .doc('medication');
+
+      final existing = await configRef.get();
+
+      final dataToSave = {
+        'anticoagulante': data['anticoagulante'],
+        'dosis': data['dosis'],
+        'esquemas': data['esquemas'],
+        'inrRange': {
+          'start': data['inrRange']['start'],
+          'end': data['inrRange']['end'],
+        },
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (!existing.exists || !existing.data()!.containsKey('createdAt')) {
+        dataToSave['createdAt'] = FieldValue.serverTimestamp();
+      }
+
+      await configRef.set(dataToSave, SetOptions(merge: true));
     } catch (e) {
       print("🔥 ERROR al guardar configuración de medicación: $e");
       throw e;
@@ -73,6 +82,16 @@ class MedicationConfigService {
 
       if (config == null) {
         return;
+      }
+
+      if (config['createdAt'] != null) {
+        final ts = config['createdAt'] as Timestamp;
+        provider.setFechaInicioEsquema(ts.toDate());
+      } else {
+        // Fallback si no existe (para cuentas viejas): usar fecha de hoy menos 1
+        provider.setFechaInicioEsquema(
+          DateTime.now().subtract(const Duration(days: 1)),
+        );
       }
 
       // Actualizar anticoagulante

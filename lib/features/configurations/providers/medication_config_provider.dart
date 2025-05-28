@@ -65,6 +65,10 @@ class MedicationConfigProvider extends ChangeNotifier {
   // Valores predeterminados
   String _anticoagulante = "Sintróm";
   double _dosis = 4.0;
+  DateTime? _fechaInicioEsquema;
+  DateTime? get fechaInicioEsquema => _fechaInicioEsquema;
+  bool get hasFechaInicio => _fechaInicioEsquema != null;
+
   final List<String> _anticoagulantesDisponibles = [
     "Sintróm",
     "Warfarina",
@@ -82,6 +86,11 @@ class MedicationConfigProvider extends ChangeNotifier {
       hora: "09:00",
     ),
   ];
+
+  void setFechaInicioEsquema(DateTime fecha) {
+    _fechaInicioEsquema = fecha;
+    notifyListeners();
+  }
 
   final List<DosisHistorialItem> _historial = [];
   List<DosisHistorialItem> get historial => _historial;

@@ -18,6 +18,7 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
   String message = '';
   Timer? timer;
   bool hasNotified = false; // evita spam de notificaciones
+  int _diasMostrados = 3; // Comienza mostrando 3 días
 
   final FlutterLocalNotificationsPlugin _notifier =
       FlutterLocalNotificationsPlugin();
@@ -93,8 +94,14 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
           () => DosisDiaria(fecha: hoy, dosis: 0, hora: '00:00', diaSemana: ''),
     );
 
+    final dosisFiltradas =
+        provider.dosisGeneradas.where((d) {
+          final diff = DateTime.now().difference(d.fecha).inDays;
+          return diff <= (_diasMostrados - 1);
+        }).toList();
+
     final grouped = <String, List<DosisDiaria>>{};
-    for (var d in dosis) {
+    for (var d in dosisFiltradas) {
       final label = _getRelativeDateLabel(d.fecha);
       grouped.putIfAbsent(label, () => []).add(d);
     }
@@ -278,30 +285,45 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
 
   // ──────────────────────────── HISTORIAL ────────────────────────────────
   Widget _buildDoseHistory(Map<String, List<DosisDiaria>> grouped) {
-    return Expanded(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
-        child: Column(
-          children:
-              grouped.entries.map((entry) {
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      entry.key,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black54,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    ...entry.value.map(_buildDoseTile).toList(),
-                    const SizedBox(height: 16),
-                  ],
-                );
-              }).toList(),
+    final controller = ScrollController();
+
+    controller.addListener(() {
+      if (controller.position.pixels >=
+          controller.position.maxScrollExtent - 200) {
+        setState(() {
+          _diasMostrados += 3; // Carga 3 días más al hacer scroll
+        });
+      }
+    });
+
+    final items = <Widget>[];
+    grouped.entries.forEach((entry) {
+      items.add(
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              entry.key,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 10),
+            ...entry.value.map(_buildDoseTile).toList(),
+            const SizedBox(height: 16),
+          ],
         ),
+      );
+    });
+
+    return Expanded(
+      child: ListView.builder(
+        controller: controller,
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 20),
+        itemCount: items.length,
+        itemBuilder: (_, index) => items[index],
       ),
     );
   }
