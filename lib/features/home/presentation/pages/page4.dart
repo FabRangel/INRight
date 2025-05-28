@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:inright/features/home/domain/providers/medication_config_provider.dart';
+import 'package:inright/features/configurations/providers/medication_config_provider.dart';
 import 'package:inright/features/home/presentation/widgets/tarjetaIndicador.dart';
 import 'package:inright/features/home/presentation/widgets/dosisHistorial.dart';
 

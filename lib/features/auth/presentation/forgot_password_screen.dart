@@ -3,10 +3,16 @@ import './email_verification_modal.dart';
 import './widgets/custom_button.dart';
 import './widgets/custom_text_field.dart';
 
-class ForgotPasswordScreen extends StatelessWidget {
-  ForgotPasswordScreen({super.key});
+class ForgotPasswordScreen extends StatefulWidget {
+  const ForgotPasswordScreen({super.key});
 
+  @override
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+}
+
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
+
   final _emailController = TextEditingController();
 
   @override
@@ -38,7 +44,10 @@ class ForgotPasswordScreen extends StatelessWidget {
                       const Text(
                         "Recuperar Contraseña",
                         textAlign: TextAlign.center,
-                        style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                       const SizedBox(height: 10),
                       const Text(
@@ -51,8 +60,12 @@ class ForgotPasswordScreen extends StatelessWidget {
                         label: "Correo Electrónico",
                         controller: _emailController,
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'El correo es requerido';
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$').hasMatch(value)) return 'Ingresa un correo válido';
+                          if (value == null || value.isEmpty)
+                            return 'El correo es requerido';
+                          if (!RegExp(
+                            r'^[\w-\.]+@([\w-]+\.)+[\w]{2,4}$',
+                          ).hasMatch(value))
+                            return 'Ingresa un correo válido';
                           return null;
                         },
                       ),

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:inright/features/auth/data/firebaseAuth.service.dart';
+import 'package:provider/provider.dart';
+import 'package:inright/features/home/providers/user_provider.dart';
+import 'package:inright/services/auth/firebaseAuth.service.dart';
+import 'package:inright/features/configurations/providers/profile_config_provider.dart';
+import 'package:inright/features/configurations/providers/notification_config_provider.dart';
+import 'package:inright/features/configurations/providers/medication_config_provider.dart';
 import 'widgets/custom_button.dart';
 import 'widgets/custom_text_field.dart';
 
@@ -14,15 +19,51 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  final _authService = FirebaseAuthService();
+  final FirebaseAuthService _firebaseAuthService = FirebaseAuthService();
+  bool _isProcessingLogout = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureLoggedOut();
+    });
+  }
+
+  Future<void> _ensureLoggedOut() async {
+    if (_isProcessingLogout) return;
+    _isProcessingLogout = true;
+
+    try {
+      if (!_firebaseAuthService.isAuthenticated) {
+        _isProcessingLogout = false;
+        return;
+      }
+
+      await _firebaseAuthService.signOut();
+
+      if (!mounted) return;
+
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.silentSignOut();
+    } catch (e) {
+      print("Error al cerrar sesión en LoginScreen: $e");
+    } finally {
+      _isProcessingLogout = false;
+    }
+  }
 
   Future<void> _loginUser() async {
     try {
-      await _authService.signIn(
+      await _firebaseAuthService.signIn(
         _emailController.text.trim(),
         _passwordController.text.trim(),
       );
       if (!mounted) return;
+
+      // Actualizar datos de todos los providers tras inicio de sesión exitoso
+      await _refreshAllProviders(context);
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text("Inicio de sesión exitoso")));
@@ -31,6 +72,36 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error al iniciar sesión: ${e.toString()}")),
       );
+    }
+  }
+
+  Future<void> _refreshAllProviders(BuildContext context) async {
+    // Refrescar datos de usuario
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    await userProvider.refreshUserData();
+
+    // Los demás providers tienen listeners para authStateChanges y se refrescarán automáticamente,
+    // pero podemos forzar una actualización si es necesario
+    try {
+      final profileProvider = Provider.of<ProfileConfigProvider>(
+        context,
+        listen: false,
+      );
+      profileProvider.forceRefresh();
+
+      final notificationProvider = Provider.of<NotificationConfigProvider>(
+        context,
+        listen: false,
+      );
+      notificationProvider.forceRefresh();
+
+      final medicationProvider = Provider.of<MedicationConfigProvider>(
+        context,
+        listen: false,
+      );
+      medicationProvider.forceRefresh();
+    } catch (e) {
+      print("Error refreshing providers: $e");
     }
   }
 

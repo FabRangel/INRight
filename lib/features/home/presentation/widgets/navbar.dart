@@ -5,6 +5,8 @@ import 'package:inright/features/home/presentation/pages/page2.dart';
 import 'package:inright/features/home/presentation/pages/page3.dart';
 import 'package:inright/features/home/presentation/pages/page4.dart';
 import 'package:inright/features/home/presentation/pages/page5.dart';
+import 'package:inright/features/home/providers/user_provider.dart';
+import 'package:provider/provider.dart';
 
 class Navbar extends StatefulWidget {
   final int initialPage;
@@ -24,12 +26,37 @@ class _HomeState extends State<Navbar> {
     super.initState();
     _pageController = PageController(initialPage: widget.initialPage);
     _controller = NotchBottomBarController(index: widget.initialPage);
+    _loadUserDataIfNeeded();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _handleSignOut() async {
+    try {
+      // Usar UserProvider para gestionar cierre de sesión
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.signOut();
+
+      // Navegar al login después de cerrar sesión
+      if (mounted) {
+        Navigator.of(
+          context,
+        ).pushNamedAndRemoveUntil('/login', (route) => false);
+      }
+    } catch (e) {
+      print("Error al cerrar sesión: $e");
+    }
+  }
+
+  Future<void> _loadUserDataIfNeeded() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    if (userProvider.userName == 'Usuario' || !userProvider.isAuthenticated) {
+      await userProvider.loadUserData();
+    }
   }
 
   @override

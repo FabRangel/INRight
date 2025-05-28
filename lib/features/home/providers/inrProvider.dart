@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inright/features/home/presentation/pages/data/inr.service.dart';
+import 'package:inright/services/home/inr.service.dart';
 
 enum ModoInr { semanal, mensual }
 

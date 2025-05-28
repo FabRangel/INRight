@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
-import 'package:inright/features/home/domain/providers/medication_config_provider.dart';
+import 'package:inright/features/configurations/providers/medication_config_provider.dart';
 
 /// Página que muestra la próxima dosis, su estatus y el historial agrupado.
 class Page5 extends StatefulWidget {

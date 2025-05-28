@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:inright/services/configurations/medication_config.service.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MedicationSchema {
   double dosis;
@@ -60,6 +62,7 @@ class DosisDiaria {
 }
 
 class MedicationConfigProvider extends ChangeNotifier {
+  // Valores predeterminados
   String _anticoagulante = "Sintróm";
   double _dosis = 4.0;
   final List<String> _anticoagulantesDisponibles = [
@@ -92,6 +95,13 @@ class MedicationConfigProvider extends ChangeNotifier {
 
   final List<DosisDiaria> _dosisGeneradas = [];
   List<DosisDiaria> get dosisGeneradas => _dosisGeneradas;
+
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
+
+  final MedicationConfigService _medicationService = MedicationConfigService();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  String? _currentUserId;
 
   void updateAnticoagulante(String value) {
     _anticoagulante = value;
@@ -297,6 +307,86 @@ class MedicationConfigProvider extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void updateEsquemas(List<MedicationSchema> esquemas) {
+    _esquemas = esquemas;
+    notifyListeners();
+  }
+
+  // Método para resetear a valores predeterminados
+  void resetToDefaults() {
+    _anticoagulante = "Sintróm";
+    _dosis = 4.0;
+    _esquemas = [
+      MedicationSchema(
+        dosis: 5.0,
+        dias: ["lunes", "miércoles", "viernes"],
+        hora: "09:00",
+      ),
+    ];
+    _inrRange = const RangeValues(2.0, 3.0);
+
+    notifyListeners();
+  }
+
+  MedicationConfigProvider() {
+    // Escuchar cambios en la autenticación
+    _auth.authStateChanges().listen((User? user) {
+      if (user != null && user.uid != _currentUserId) {
+        _currentUserId = user.uid;
+        loadMedicationConfig();
+      } else if (user == null) {
+        _currentUserId = null;
+        resetToDefaults();
+      }
+    });
+
+    // Cargar la configuración inicial si ya hay usuario autenticado
+    final currentUser = _auth.currentUser;
+    if (currentUser != null) {
+      _currentUserId = currentUser.uid;
+      loadMedicationConfig();
+    }
+  }
+
+  Future<void> loadMedicationConfig() async {
+    if (_auth.currentUser == null) {
+      return;
+    }
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _medicationService.loadMedicationConfig(this);
+    } catch (e) {
+      print("🔥 Error cargando configuración de medicación: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> saveMedicationConfig() async {
+    if (_auth.currentUser == null) return;
+
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      await _medicationService.saveMedicationConfig(getAllConfigData());
+    } catch (e) {
+      print("Error guardando configuración de medicación: $e");
+      throw e;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Método para forzar la actualización de los datos
+  Future<void> forceRefresh() async {
+    if (_auth.currentUser != null && _currentUserId == _auth.currentUser!.uid) {
+      await loadMedicationConfig();
+    }
+  }
 }
-
-

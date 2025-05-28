@@ -2,6 +2,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatefulWidget {
+  const WelcomeScreen({super.key});
+
   @override
   _WelcomeScreenState createState() => _WelcomeScreenState();
 }
@@ -30,6 +32,9 @@ class _WelcomeScreenState extends State<WelcomeScreen>
     },
   ];
 
+  // Agregar variables para controlar temporizadores o suscripciones
+  bool _disposed = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,7 +46,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
     // Mostrar el logo durante 5 segundos antes de avanzar a la primera pantalla
     Future.delayed(Duration(seconds: 5), () {
-      setState(() {
+      _safeSetState(() {
         _currentPage = 0; // Cambiar a la primera pantalla
       });
       _controller.forward(); // Iniciar la animación
@@ -50,8 +55,18 @@ class _WelcomeScreenState extends State<WelcomeScreen>
 
   @override
   void dispose() {
+    // Marcar como disposed para evitar actualizaciones posteriores
+    _disposed = true;
+
     _controller.dispose();
     super.dispose();
+  }
+
+  // Método seguro para actualizar el estado
+  void _safeSetState(VoidCallback fn) {
+    if (mounted && !_disposed) {
+      setState(fn);
+    }
   }
 
   void _nextPage() {
@@ -59,7 +74,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
       _nextPageToShow = _currentPage + 1; // Preparar la próxima página
       _controller.reverse().then((_) {
         // Esperar a que la animación termine antes de cambiar la página
-        setState(() {
+        _safeSetState(() {
           _currentPage = _nextPageToShow;
         });
         _controller.forward(); // Iniciar la animación de la nueva página

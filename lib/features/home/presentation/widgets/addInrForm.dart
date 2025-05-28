@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:inright/features/home/presentation/pages/data/inr.service.dart';
+import 'package:inright/services/home/inr.service.dart';
 
 final _inrService = InrService();
 
@@ -26,7 +26,6 @@ class _AddInrFormState extends State<AddInrForm> {
 
     if (valor != null) {
       final uid = FirebaseAuth.instance.currentUser?.uid;
-      print("Usuario actual: $uid");
 
       await _inrService.saveInr(valor);
 

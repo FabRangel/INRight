@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:inright/features/home/domain/providers/inrProvider.dart';
+import 'package:inright/features/home/providers/inrProvider.dart';
 import 'package:inright/features/home/presentation/widgets/tendenciaData.dart';
 import 'package:inright/features/home/presentation/widgets/legendItem.dart';
 import 'package:inright/features/home/presentation/widgets/buildEstabilidadCard.dart';

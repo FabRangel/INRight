@@ -14,7 +14,6 @@ class InrService {
       }
 
       final now = DateTime.now();
-      print("Guardando INR: $value para UID: ${user.uid}");
 
       await _firestore
           .collection('personas')
@@ -28,8 +27,6 @@ class InrService {
                 '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
             'createdAt': FieldValue.serverTimestamp(),
           });
-
-      print("✅ Registro guardado exitosamente.");
     } catch (e) {
       print("🔥 ERROR al guardar INR: $e");
     }

@@ -4,7 +4,7 @@ import 'package:inright/features/home/presentation/widgets/addInrForm.dart';
 import 'package:inright/features/home/presentation/widgets/trendChart.dart';
 import 'package:inright/features/home/presentation/widgets/historyItem.dart';
 import 'package:inright/features/home/presentation/widgets/animatedHistoryItem.dart';
-import 'package:inright/features/home/presentation/pages/data/inr.service.dart';
+import 'package:inright/services/home/inr.service.dart';
 
 class Page2 extends StatefulWidget {
   const Page2({super.key});
