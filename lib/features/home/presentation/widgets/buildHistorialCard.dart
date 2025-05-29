@@ -4,55 +4,22 @@ import 'package:inright/features/home/presentation/widgets/historyItem.dart';
 
 enum FiltroHistorial { todo, inr, dosis }
 
-class buildHistorialCard extends StatefulWidget {
-  const buildHistorialCard({super.key});
+class HistorialCard extends StatefulWidget {
+  final List<Map<String, dynamic>> historial;
+
+  const HistorialCard({super.key, required this.historial});
 
   @override
-  State<buildHistorialCard> createState() => _HistorialSectionState();
+  State<HistorialCard> createState() => _HistorialCardState();
 }
 
-class _HistorialSectionState extends State<buildHistorialCard> {
+class _HistorialCardState extends State<HistorialCard> {
   FiltroHistorial filtroSeleccionado = FiltroHistorial.todo;
-
-  final List<Map<String, dynamic>> historial = [
-    {
-      'tipo': 'inr',
-      'valor': 2.8,
-      'fecha': '15 Ene',
-      'hora': '09:00',
-      'trend': 'neutral',
-    },
-    {'tipo': 'dosis', 'dosis': '5mg', 'fecha': '15 Ene', 'hora': '09:00'},
-    {
-      'tipo': 'inr',
-      'valor': 3.1,
-      'fecha': '01 Ene',
-      'hora': '09:15',
-      'trend': 'up',
-    },
-    {'tipo': 'dosis', 'dosis': '4mg', 'fecha': '01 Ene', 'hora': '09:15'},
-    {
-      'tipo': 'inr',
-      'valor': 2.5,
-      'fecha': '15 Dic',
-      'hora': '08:45',
-      'trend': 'down',
-    },
-    {'tipo': 'dosis', 'dosis': '5mg', 'fecha': '15 Dic', 'hora': '08:45'},
-    {
-      'tipo': 'inr',
-      'valor': 2.7,
-      'fecha': '01 Dic',
-      'hora': '09:30',
-      'trend': 'neutral',
-    },
-    {'tipo': 'dosis', 'dosis': '5mg', 'fecha': '01 Dic', 'hora': '09:30'},
-  ];
 
   @override
   Widget build(BuildContext context) {
     final historialFiltrado =
-        historial.where((item) {
+        widget.historial.where((item) {
           if (filtroSeleccionado == FiltroHistorial.todo) return true;
           return item['tipo'] == filtroSeleccionado.name;
         }).toList();
@@ -95,22 +62,28 @@ class _HistorialSectionState extends State<buildHistorialCard> {
           const SizedBox(height: 16),
 
           // Lista renderizada
-          ...historialFiltrado.map((item) {
-            if (item['tipo'] == 'inr') {
-              return HistoryItem(
-                value: item['valor'],
-                date: item['fecha'],
-                time: item['hora'],
-                trend: item['trend'],
-              );
-            } else {
-              return DosisItem(
-                dosis: item['dosis'],
-                date: item['fecha'],
-                time: item['hora'],
-              );
-            }
-          }).toList(),
+          if (historialFiltrado.isEmpty)
+            const Text("Sin registros")
+          else
+            ...historialFiltrado.map((item) {
+              if (item['tipo'] == 'inr' && item['valor'] != null) {
+                return HistoryItem(
+                  value: (item['valor'] as num).toDouble(),
+                  date: item['fecha'],
+                  time: item['hora'],
+                  trend: item['trend'] ?? 'neutral',
+                );
+              } else if (item['tipo'] == 'dosis') {
+                return DosisItem(
+                  dosis: item['dosis'].toString(),
+                  date: item['fecha'],
+                  time: item['hora'],
+                );
+              } else {
+                // Si es tipo desconocido o falta data
+                return const SizedBox.shrink();
+              }
+            }).toList(),
         ],
       ),
     );

@@ -3,6 +3,7 @@ import 'package:inright/features/auth/presentation/forgot_password_screen.dart';
 import 'package:inright/features/auth/presentation/login_screen.dart';
 import 'package:inright/features/auth/presentation/register_screen.dart';
 import 'package:inright/features/home/presentation/widgets/navbar.dart';
+import 'package:inright/features/home/providers/dosesProvider.dart';
 import 'package:inright/features/home/providers/inrProvider.dart';
 import 'package:inright/features/configurations/presentation/pages/configurations.dart';
 import 'package:inright/features/configurations/providers/medication_config_provider.dart';
@@ -53,6 +54,7 @@ void main() async {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => ProfileConfigProvider()),
         ChangeNotifierProvider(create: (_) => NotificationConfigProvider()),
+        ChangeNotifierProvider(create: (_) => DosisProvider()..fetchDosis()),
       ],
       child: MainApp(isFirstTime: isFirstTime, initialAuth: isAuthenticated),
     ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inright/services/home/doses.service.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:async';
@@ -34,14 +35,31 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
     )..forward();
 
     //--- Espera al primer frame y *luego* genera las dosis ---
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final provider = Provider.of<MedicationConfigProvider>(
         context,
         listen: false,
       );
       provider
         ..generarDosisSegunEsquema(silent: true)
-        ..marcarFaltas(); // ← esto pone estado = 'falta' a las pasadas
+        ..marcarFaltas();
+
+      /// Sincroniza con dosis tomadas en Firestore
+      final firestoreDoses = await DosisService().getDosesHistory();
+
+      for (var local in provider.dosisGeneradas) {
+        final fechaStr =
+            '${local.fecha.year}-${local.fecha.month.toString().padLeft(2, '0')}-${local.fecha.day.toString().padLeft(2, '0')}';
+        final coincidencia = firestoreDoses.firstWhere(
+          (f) => f['fecha'] == fechaStr && f['hora'] == local.hora,
+          orElse: () => {},
+        );
+        if (coincidencia.isNotEmpty) {
+          local.tomada = true;
+          local.estado = coincidencia['estado'] ?? 'ok';
+          local.horaToma = DateTime.now(); // o puedes guardar y usar la real
+        }
+      }
     });
 
     // notificaciones locales (sin cambios)
@@ -211,7 +229,7 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: () {
+              onPressed: () async {
                 if (dosisHoy.tomada) {
                   setState(() {
                     dosisHoy
@@ -230,6 +248,13 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
                     ..tomada = true
                     ..horaToma = DateTime.now()
                     ..estado = 'ok';
+                  await DosisService().saveDoses(
+                    dosis: dosisHoy.dosis,
+                    hora: dosisHoy.hora,
+                    medicamento: provider.anticoagulante,
+                    estado: dosisHoy.estado,
+                    fecha: dosisHoy.fecha,
+                  );
                   _showDelayedNotification();
                   if (!hasNotified) {
                     _showDelayedNotification();

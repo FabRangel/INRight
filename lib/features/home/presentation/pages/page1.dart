@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:inright/features/configurations/providers/medication_config_provider.dart';
+import 'package:inright/features/home/providers/dosesProvider.dart';
 import 'package:inright/features/home/providers/inrProvider.dart';
 import 'package:inright/features/home/presentation/widgets/tendenciaData.dart';
 import 'package:inright/features/home/presentation/widgets/legendItem.dart';
@@ -26,6 +27,8 @@ class _Page1State extends State<Page1> {
     Future.microtask(() {
       final provider = Provider.of<InrProvider>(context, listen: false);
       provider.fetchInr();
+      final dosisProvider = Provider.of<DosisProvider>(context, listen: false);
+      dosisProvider.fetchDosis();
     });
   }
 
@@ -84,6 +87,26 @@ class _Page1State extends State<Page1> {
             .where((v) => v != null)
             .map((v) => (v as num).toDouble())
             .toList();
+    final inr = context.watch<InrProvider>().inrDatos;
+    final dosis = context.watch<DosisProvider>().dosisDatos;
+
+    final historialUnificado = [
+      ...inr.map((e) => {...e, 'tipo': 'inr'}),
+      ...dosis.map(
+        (e) => {
+          ...e,
+          'tipo': 'dosis',
+          'fecha': e['fecha'], // ya está en string "YYYY-MM-DD"
+          'hora': e['hora'] ?? '',
+        },
+      ),
+    ]..sort((a, b) {
+      final aFecha =
+          DateTime.tryParse("${a['fecha']} ${a['hora']}") ?? DateTime(0);
+      final bFecha =
+          DateTime.tryParse("${b['fecha']} ${b['hora']}") ?? DateTime(0);
+      return bFecha.compareTo(aFecha);
+    });
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -341,7 +364,7 @@ class _Page1State extends State<Page1> {
                     ],
                   ),
                   const SizedBox(height: 30),
-                  buildHistorialCard(),
+                  HistorialCard(historial: historialUnificado),
                 ],
               ),
             ),
