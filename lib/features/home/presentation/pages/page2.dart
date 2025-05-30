@@ -8,8 +8,121 @@ import 'package:inright/services/home/inr.service.dart';
 import 'package:provider/provider.dart';
 import 'package:inright/features/configurations/providers/medication_config_provider.dart';
 
+/// Clase para compartir datos de INR con otros widgets
+class InrData {
+  final double value;
+  final String date;
+  final String time;
+  final bool isInRange;
+  final int streak;
+
+  InrData({
+    required this.value,
+    required this.date,
+    required this.time,
+    required this.isInRange,
+    required this.streak,
+  });
+}
+
 class Page2 extends StatefulWidget {
   const Page2({super.key});
+
+  /// Obtiene los datos del último INR y la racha actual
+  static Future<InrData?> getInrData(BuildContext context) async {
+    try {
+      final data = await InrService().getInrHistory();
+      if (data.isEmpty) {
+        return InrData(
+          value: 0.0,
+          date: '-- ---',
+          time: '--:--',
+          isInRange: false,
+          streak: 0,
+        );
+      }
+
+      // Obtener el rango de INR del provider
+      final configProvider = Provider.of<MedicationConfigProvider>(
+        context,
+        listen: false,
+      );
+      final inrRange = configProvider.inrRange;
+
+      // Extraer el último valor
+      final lastValue = data[0]['value']?.toDouble() ?? 0.0;
+      final isInRange =
+          (lastValue >= inrRange.start && lastValue <= inrRange.end);
+
+      // Extraer la fecha y hora
+      final rawDate = data[0]['date'] ?? '-- ---';
+      final time = data[0]['time'] ?? '--:--';
+
+      // Formatear la fecha
+      String formattedDate = rawDate;
+      try {
+        if (rawDate.contains('-')) {
+          final parts = rawDate.split('-');
+          if (parts.length == 3) {
+            final DateTime dateObj = DateTime(
+              int.parse(parts[0]), // year
+              int.parse(parts[1]), // month
+              int.parse(parts[2]), // day
+            );
+
+            // Format as "day month" using the Spanish month names
+            final months = [
+              'Ene',
+              'Feb',
+              'Mar',
+              'Abr',
+              'May',
+              'Jun',
+              'Jul',
+              'Ago',
+              'Sep',
+              'Oct',
+              'Nov',
+              'Dic',
+            ];
+            formattedDate = "${dateObj.day} ${months[dateObj.month - 1]}";
+          }
+        }
+      } catch (e) {
+        // Mantener la fecha original en caso de error
+      }
+
+      // Calcular la racha
+      int currentStreak = 0;
+      for (var item in data) {
+        final value = item['value']?.toDouble() ?? 0.0;
+        final itemInRange = value >= inrRange.start && value <= inrRange.end;
+
+        if (itemInRange) {
+          currentStreak++;
+        } else {
+          break;
+        }
+      }
+
+      return InrData(
+        value: lastValue,
+        date: formattedDate,
+        time: time,
+        isInRange: isInRange,
+        streak: currentStreak,
+      );
+    } catch (e) {
+      // En caso de error, devolver valores por defecto
+      return InrData(
+        value: 0.0,
+        date: '-- ---',
+        time: '--:--',
+        isInRange: false,
+        streak: 0,
+      );
+    }
+  }
 
   @override
   State<Page2> createState() => _Page2State();

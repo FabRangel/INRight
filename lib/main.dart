@@ -14,6 +14,7 @@ import 'package:inright/features/welcome/presentation/pages/welcome_screen.dart'
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:inright/services/home/doses.service.dart';
 
 import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -36,22 +37,43 @@ void main() async {
     await userProvider.loadUserData();
   }
 
+  // Crear el provider de medicación
+  final medicationProvider = MedicationConfigProvider();
+  // Cargamos los datos guardados
+  await MedicationConfigService().loadMedicationConfig(medicationProvider);
+  medicationProvider
+    ..generarDosisSegunEsquema(silent: true)
+    ..marcarFaltas();
+
+  // Sincronizamos con FireStore para tener las dosis actualizadas desde el inicio
+  if (authService.isAuthenticated) {
+    final firestoreDoses = await DosisService().getDosesHistory();
+    for (var local in medicationProvider.dosisGeneradas) {
+      final fechaStr =
+          '${local.fecha.year}-${local.fecha.month.toString().padLeft(2, '0')}-${local.fecha.day.toString().padLeft(2, '0')}';
+      final coincidencia = firestoreDoses.firstWhere(
+        (f) => f['fecha'] == fechaStr && f['hora'] == local.hora,
+        orElse: () => {},
+      );
+      if (coincidencia.isNotEmpty) {
+        local.tomada = true;
+        local.estado = coincidencia['estado'] ?? 'ok';
+        local.horaToma =
+            coincidencia['horaToma'] != null
+                ? DateTime.parse(coincidencia['horaToma'])
+                : DateTime.now();
+      }
+    }
+  }
+
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider<MedicationConfigProvider>(
-          create: (_) {
-            final provider = MedicationConfigProvider();
-            // Cargamos los datos guardados
-            MedicationConfigService().loadMedicationConfig(provider);
-            provider
-              ..generarDosisSegunEsquema(silent: true)
-              ..marcarFaltas();
-            return provider;
-          },
+        ChangeNotifierProvider<MedicationConfigProvider>.value(
+          value: medicationProvider,
         ),
         ChangeNotifierProvider(create: (_) => InrProvider()..fetchInr()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider.value(value: userProvider),
         ChangeNotifierProvider(create: (_) => ProfileConfigProvider()),
         ChangeNotifierProvider(create: (_) => NotificationConfigProvider()),
         ChangeNotifierProvider(create: (_) => DosisProvider()..fetchDosis()),

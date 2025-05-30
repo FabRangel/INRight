@@ -6,9 +6,154 @@ import 'dart:async';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:inright/features/configurations/providers/medication_config_provider.dart';
 
+/// Clase auxiliar para compartir información de dosis con otros widgets
+class DoseInfo {
+  final String message;
+  final String medicamento;
+  final String dosis;
+  final String hora;
+  final bool tomada;
+
+  DoseInfo({
+    required this.message,
+    required this.medicamento,
+    required this.dosis,
+    required this.hora,
+    required this.tomada,
+  });
+}
+
 /// Página que muestra la próxima dosis, su estatus y el historial agrupado.
 class Page5 extends StatefulWidget {
   const Page5({super.key});
+
+  // Método estático para obtener información de la dosis actual
+  static DoseInfo? getCurrentDoseInfo(BuildContext context) {
+    try {
+      final provider = Provider.of<MedicationConfigProvider>(
+        context,
+        listen: false,
+      );
+      if (provider.dosisGeneradas.isEmpty) return null;
+
+      final hoy = DateTime.now();
+      final dosisHoy = provider.dosisGeneradas.firstWhere(
+        (d) => _esMismoDiaStatic(d.fecha, hoy),
+        orElse:
+            () =>
+                DosisDiaria(fecha: hoy, dosis: 0, hora: '00:00', diaSemana: ''),
+      );
+
+      String message = _getStaticDoseMessage(
+        dosisHoy.hora,
+        dosisHoy.tomada,
+        provider,
+        hoy,
+      );
+
+      return DoseInfo(
+        message: message,
+        medicamento: provider.anticoagulante ?? 'Sintrom',
+        dosis: '${dosisHoy.dosis} mg',
+        hora: dosisHoy.hora,
+        tomada: dosisHoy.tomada,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Versión estática del mensaje de dosis para uso desde fuera de la clase
+  static String _getStaticDoseMessage(
+    String doseTimeStr,
+    bool tomada,
+    MedicationConfigProvider provider,
+    DateTime now,
+  ) {
+    if (tomada) {
+      final siguiente = _buscarSiguienteDosisStatic(provider, now);
+      if (siguiente == null) return 'No hay próximas dosis programadas';
+
+      final diff = siguiente.difference(now);
+      final h = diff.inHours;
+      final m = diff.inMinutes % 60;
+      return 'Faltan ${h}h ${m}m para tu próxima dosis';
+    }
+
+    final partes = doseTimeStr.split(':');
+    if (partes.length < 2) return 'Horario no disponible';
+
+    final fechaHoraDosis = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(partes[0]),
+      int.parse(partes[1]),
+    );
+
+    if (fechaHoraDosis.isAfter(now)) {
+      final diff = fechaHoraDosis.difference(now);
+      final h = diff.inHours;
+      final m = diff.inMinutes % 60;
+      return 'Faltan ${h}h ${m}m para tu dosis';
+    }
+
+    final retraso = now.difference(fechaHoraDosis);
+    final h = retraso.inHours;
+    final m = retraso.inMinutes % 60;
+    return 'Te retrasaste ${h}h ${m}m';
+  }
+
+  static DateTime? _buscarSiguienteDosisStatic(
+    MedicationConfigProvider p,
+    DateTime desde,
+  ) {
+    final pendientes =
+        p.dosisGeneradas.where((d) {
+          if (d.tomada) return false;
+          final partes = d.hora.split(':');
+          if (partes.length < 2) return false;
+
+          final fh = DateTime(
+            d.fecha.year,
+            d.fecha.month,
+            d.fecha.day,
+            int.parse(partes[0]),
+            int.parse(partes[1]),
+          );
+          return fh.isAfter(desde);
+        }).toList();
+
+    pendientes.sort((a, b) {
+      DateTime fa(DosisDiaria d) {
+        final parts = d.hora.split(':');
+        return DateTime(
+          d.fecha.year,
+          d.fecha.month,
+          d.fecha.day,
+          int.parse(parts[0]),
+          int.parse(parts[1]),
+        );
+      }
+
+      return fa(a).compareTo(fa(b));
+    });
+
+    if (pendientes.isEmpty) return null;
+
+    final prox = pendientes.first;
+    final pParts = prox.hora.split(':');
+    return DateTime(
+      prox.fecha.year,
+      prox.fecha.month,
+      prox.fecha.day,
+      int.parse(pParts[0]),
+      int.parse(pParts[1]),
+    );
+  }
+
+  static bool _esMismoDiaStatic(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   @override
   State<Page5> createState() => _Page5State();
@@ -57,9 +202,16 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
         if (coincidencia.isNotEmpty) {
           local.tomada = true;
           local.estado = coincidencia['estado'] ?? 'ok';
-          local.horaToma = DateTime.now(); // o puedes guardar y usar la real
+          local.horaToma =
+              coincidencia['horaToma'] != null
+                  ? DateTime.parse(coincidencia['horaToma'])
+                  : DateTime.now();
         }
       }
+
+      setState(() {
+        _inicializarMensajeYTimer();
+      });
     });
 
     // notificaciones locales (sin cambios)
@@ -70,6 +222,133 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
     _notifier.initialize(initSettings);
 
     Future.microtask(_inicializarMensajeYTimer);
+  }
+
+  // Método estático para obtener información de la dosis actual
+  static DoseInfo? getCurrentDoseInfo(BuildContext context) {
+    try {
+      final provider = Provider.of<MedicationConfigProvider>(
+        context,
+        listen: false,
+      );
+      if (provider.dosisGeneradas.isEmpty) return null;
+
+      final hoy = DateTime.now();
+      final dosisHoy = provider.dosisGeneradas.firstWhere(
+        (d) =>
+            d.fecha.year == hoy.year &&
+            d.fecha.month == hoy.month &&
+            d.fecha.day == hoy.day,
+        orElse:
+            () =>
+                DosisDiaria(fecha: hoy, dosis: 0, hora: '00:00', diaSemana: ''),
+      );
+
+      String message = _getStaticDoseMessage(
+        dosisHoy.hora,
+        dosisHoy.tomada,
+        provider,
+        hoy,
+      );
+
+      return DoseInfo(
+        message: message,
+        medicamento: provider.anticoagulante ?? 'Sintrom',
+        dosis: '${dosisHoy.dosis} mg',
+        hora: dosisHoy.hora,
+        tomada: dosisHoy.tomada,
+      );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Versión estática del mensaje de dosis para uso desde fuera de la clase
+  static String _getStaticDoseMessage(
+    String doseTimeStr,
+    bool tomada,
+    MedicationConfigProvider provider,
+    DateTime now,
+  ) {
+    if (tomada) {
+      final siguiente = _buscarSiguienteDosisStatic(provider, now);
+      if (siguiente == null) return 'No hay próximas dosis programadas';
+
+      final diff = siguiente.difference(now);
+      final h = diff.inHours;
+      final m = diff.inMinutes % 60;
+      return 'Faltan ${h}h ${m}m para tu próxima dosis';
+    }
+
+    final partes = doseTimeStr.split(':');
+    if (partes.length < 2) return 'Horario no disponible';
+
+    final fechaHoraDosis = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      int.parse(partes[0]),
+      int.parse(partes[1]),
+    );
+
+    if (fechaHoraDosis.isAfter(now)) {
+      final diff = fechaHoraDosis.difference(now);
+      final h = diff.inHours;
+      final m = diff.inMinutes % 60;
+      return 'Faltan ${h}h ${m}m para tu dosis';
+    }
+
+    final retraso = now.difference(fechaHoraDosis);
+    final h = retraso.inHours;
+    final m = retraso.inMinutes % 60;
+    return 'Te retrasaste ${h}h ${m}m';
+  }
+
+  static DateTime? _buscarSiguienteDosisStatic(
+    MedicationConfigProvider p,
+    DateTime desde,
+  ) {
+    final pendientes =
+        p.dosisGeneradas.where((d) {
+            if (d.tomada) return false;
+            final partes = d.hora.split(':');
+            if (partes.length < 2) return false;
+
+            final fh = DateTime(
+              d.fecha.year,
+              d.fecha.month,
+              d.fecha.day,
+              int.parse(partes[0]),
+              int.parse(partes[1]),
+            );
+            return fh.isAfter(desde);
+          }).toList()
+          ..sort((a, b) {
+            DateTime fa(DosisDiaria d) {
+              final parts = d.hora.split(':');
+              return DateTime(
+                d.fecha.year,
+                d.fecha.month,
+                d.fecha.day,
+                int.parse(parts[0]),
+                int.parse(parts[1]),
+              );
+            }
+
+            return fa(a).compareTo(fa(b));
+          });
+
+    if (pendientes.isEmpty) return null;
+
+    final prox = pendientes.first;
+    final pParts = prox.hora.split(':');
+    return DateTime(
+      prox.fecha.year,
+      prox.fecha.month,
+      prox.fecha.day,
+      int.parse(pParts[0]),
+      int.parse(pParts[1]),
+    );
   }
 
   void _inicializarMensajeYTimer() {
