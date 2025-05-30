@@ -99,8 +99,8 @@ class Page3 extends StatelessWidget {
               ),
             ),
 
-            // const SizedBox(height: 0),
-            // NextINRCardWidget(),
+            const SizedBox(height: 0),
+            NextINRCardWidget(),
             const SizedBox(height: 30),
           ],
         ),

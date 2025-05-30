@@ -707,6 +707,34 @@ class _ConfigurationsState extends State<Configurations> {
                   ],
                 ),
                 const SizedBox(height: 16),
+                _buildCard(
+                  title: "Frecuencia de pruebas INR",
+                  children: [
+                    const Text("Cada cuántos días te haces una prueba de INR:"),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Slider(
+                            min: 3,
+                            max: 30,
+                            divisions: 27,
+                            value: medicationProvider.frecuenciaInr.toDouble(),
+                            label: "${medicationProvider.frecuenciaInr} días",
+                            onChanged: (value) {
+                              medicationProvider.setFrecuenciaInr(
+                                value.round(),
+                              );
+                            },
+                          ),
+                        ),
+                        Text("${medicationProvider.frecuenciaInr} días"),
+                      ],
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
                 ElevatedButton(
                   onPressed: () async {
                     try {

@@ -72,6 +72,14 @@ class MedicationConfigProvider extends ChangeNotifier {
   bool _dosisSincronizadas = false;
 
   bool get dosisSincronizadas => _dosisSincronizadas;
+  int _frecuenciaInr = 7; // por defecto cada 7 días
+
+  int get frecuenciaInr => _frecuenciaInr;
+
+  void setFrecuenciaInr(int dias) {
+    _frecuenciaInr = dias;
+    notifyListeners();
+  }
 
   void marcarComoSincronizadas() {
     _dosisSincronizadas = true;
@@ -120,6 +128,28 @@ class MedicationConfigProvider extends ChangeNotifier {
   final MedicationConfigService _medicationService = MedicationConfigService();
   final FirebaseAuth _auth = FirebaseAuth.instance;
   String? _currentUserId;
+
+  void cargarDesdeMap(Map<String, dynamic> data) {
+    _anticoagulante = data['anticoagulante'] ?? _anticoagulante;
+    _dosis = (data['dosis'] as num?)?.toDouble() ?? _dosis;
+
+    final esquemasData = data['esquemas'] as List<dynamic>?;
+    if (esquemasData != null) {
+      _esquemas = esquemasData.map((e) => MedicationSchema.fromMap(e)).toList();
+    }
+
+    final inrData = data['inrRange'] as Map<String, dynamic>?;
+    if (inrData != null) {
+      _inrRange = RangeValues(
+        (inrData['start'] as num?)?.toDouble() ?? _inrRange.start,
+        (inrData['end'] as num?)?.toDouble() ?? _inrRange.end,
+      );
+    }
+
+    _frecuenciaInr = data['frecuenciaInr'] ?? _frecuenciaInr;
+
+    notifyListeners();
+  }
 
   void updateAnticoagulante(String value) {
     _anticoagulante = value;
@@ -192,6 +222,7 @@ class MedicationConfigProvider extends ChangeNotifier {
       'dosis': _dosis,
       'esquemas': _esquemas.map((e) => e.toMap()).toList(),
       'inrRange': {'start': _inrRange.start, 'end': _inrRange.end},
+      'frecuenciaInr': _frecuenciaInr,
     };
   }
 
