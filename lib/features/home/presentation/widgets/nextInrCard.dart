@@ -49,10 +49,7 @@ class NextINRCardWidget extends StatelessWidget {
                 SizedBox(height: 5),
                 Text(
                   "10:30 am",
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
             ),

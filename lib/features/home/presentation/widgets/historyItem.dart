@@ -5,6 +5,7 @@ class HistoryItem extends StatelessWidget {
   final String date;
   final String time;
   final String trend;
+  final bool isInRange; // Nuevo parámetro
 
   const HistoryItem({
     super.key,
@@ -12,28 +13,24 @@ class HistoryItem extends StatelessWidget {
     required this.date,
     required this.time,
     required this.trend,
+    this.isInRange = true, // Valor predeterminado
   });
 
   @override
   Widget build(BuildContext context) {
-    final isHigh = value >= 3.0;
-    final isLow = value < 2.6;
+    // Usar el parámetro isInRange para determinar colores
+    final bgColor =
+        isInRange ? const Color(0xFFEAFBF0) : const Color(0xFFFFEBEB);
+    final iconBg =
+        isInRange ? const Color(0xFFDFF7E8) : const Color(0xFFFFE1E1);
+    final valueColor = isInRange ? Colors.green : Colors.red;
 
-    final bgColor = isHigh
-        ? const Color(0xFFFFEBEB)
-        : const Color(0xFFEAFBF0);
-
-    final iconBg = isHigh
-        ? const Color(0xFFFFE1E1)
-        : const Color(0xFFDFF7E8);
-
-    final icon = trend == 'up'
-        ? Icons.arrow_upward
-        : trend == 'down'
+    final icon =
+        trend == 'up'
+            ? Icons.arrow_upward
+            : trend == 'down'
             ? Icons.arrow_downward
             : Icons.remove;
-
-    final valueColor = isHigh ? Colors.red : Colors.green;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -47,10 +44,7 @@ class HistoryItem extends StatelessWidget {
           Container(
             width: 40,
             height: 40,
-            decoration: BoxDecoration(
-              color: iconBg,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: iconBg, shape: BoxShape.circle),
             child: Icon(icon, color: Colors.black, size: 20),
           ),
           const SizedBox(width: 12),

@@ -5,6 +5,8 @@ import 'package:inright/features/home/presentation/widgets/trendChart.dart';
 import 'package:inright/features/home/presentation/widgets/historyItem.dart';
 import 'package:inright/features/home/presentation/widgets/animatedHistoryItem.dart';
 import 'package:inright/services/home/inr.service.dart';
+import 'package:provider/provider.dart';
+import 'package:inright/features/configurations/providers/medication_config_provider.dart';
 
 class Page2 extends StatefulWidget {
   const Page2({super.key});
@@ -19,6 +21,12 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
   late Animation<double> _fadeAnimation;
 
   List<Map<String, dynamic>> historyData = [];
+  String lastDate = '-- ---';
+  String lastTime = '--:--';
+  double lastValue = 0.0;
+  double minValue = 0.0;
+  double maxValue = 0.0;
+  int streak = 0; // Nueva variable para la racha
 
   @override
   void initState() {
@@ -43,8 +51,98 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
 
   Future<void> _loadInrHistory() async {
     final data = await InrService().getInrHistory();
+
+    // Obtener el provider para el rango de INR configurado
+    final configProvider = Provider.of<MedicationConfigProvider>(
+      context,
+      listen: false,
+    );
+    final inrRange = configProvider.inrRange;
+    final minIdeal = inrRange.start;
+    final maxIdeal = inrRange.end;
+
+    // Calcular valores mínimo, máximo y último
+    double min = double.infinity;
+    double max = double.negativeInfinity;
+    double last = 0.0;
+    String date = '-- ---';
+    String time = '--:--';
+    int currentStreak = 0; // Inicializamos la racha
+
+    if (data.isNotEmpty) {
+      // El último valor es el primero del historial (ordenado descendente)
+      last = data[0]['value']?.toDouble() ?? 0.0;
+      final rawDate = data[0]['date'] ?? '-- ---';
+      time = data[0]['time'] ?? '--:--';
+
+      // Format date to "day month" format
+      try {
+        if (rawDate.contains('-')) {
+          final parts = rawDate.split('-');
+          if (parts.length == 3) {
+            final DateTime dateObj = DateTime(
+              int.parse(parts[0]), // year
+              int.parse(parts[1]), // month
+              int.parse(parts[2]), // day
+            );
+
+            // Format as "day month" using the Spanish month names
+            final months = [
+              'Ene',
+              'Feb',
+              'Mar',
+              'Abr',
+              'May',
+              'Jun',
+              'Jul',
+              'Ago',
+              'Sep',
+              'Oct',
+              'Nov',
+              'Dic',
+            ];
+            date = "${dateObj.day} ${months[dateObj.month - 1]}";
+          }
+        }
+      } catch (e) {
+        print("Error formatting date: $e");
+        // Keep the original date value if there's an error
+      }
+
+      // Buscar mínimo y máximo
+      for (var item in data) {
+        final value = item['value']?.toDouble() ?? 0.0;
+        if (value < min) min = value;
+        if (value > max) max = value;
+      }
+
+      // Calcular la racha de valores consecutivos dentro del rango
+      for (var item in data) {
+        final value = item['value']?.toDouble() ?? 0.0;
+        final isInRange = value >= minIdeal && value <= maxIdeal;
+
+        if (isInRange) {
+          // Incrementar racha si está en rango
+          currentStreak++;
+        } else {
+          // Romper la racha al encontrar un valor fuera de rango
+          break;
+        }
+      }
+    }
+
+    // Si no hay datos, establecer valores predeterminados
+    if (min == double.infinity) min = 0.0;
+    if (max == double.negativeInfinity) max = 0.0;
+
     setState(() {
       historyData = data;
+      lastValue = last;
+      lastDate = date;
+      lastTime = time;
+      minValue = min;
+      maxValue = max;
+      streak = currentStreak;
     });
   }
 
@@ -56,6 +154,14 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    // Obtener el provider para el rango de INR configurado
+    final configProvider = Provider.of<MedicationConfigProvider>(context);
+    final inrRange = configProvider.inrRange;
+
+    // Determinar si el último valor está dentro del rango
+    final isInRange = lastValue >= inrRange.start && lastValue <= inrRange.end;
+    final valueColor = isInRange ? Colors.green : Colors.red;
+
     final screenHeight = MediaQuery.of(context).size.height;
     final topPadding = MediaQuery.of(context).padding.top;
 
@@ -92,58 +198,58 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
-                    children: const [
-                      Text(
+                    children: [
+                      const Text(
                         "Última medición",
                         style: TextStyle(color: Colors.white, fontSize: 20),
                       ),
-                      SizedBox(height: 5),
+                      const SizedBox(height: 5),
                       Text(
-                        "2.8",
-                        style: TextStyle(
+                        "${lastValue.toStringAsFixed(1)}",
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 40,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "15 Ene",
-                            style: TextStyle(
+                            lastDate,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                             ),
                           ),
-                          SizedBox(width: 20),
+                          const SizedBox(width: 20),
                           Text(
-                            "09:00",
-                            style: TextStyle(
+                            lastTime,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 14,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 10),
+                      const SizedBox(height: 10),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Column(
                             children: [
-                              Text(
+                              const Text(
                                 "Mínimo",
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
                                 ),
                               ),
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
-                                "2.0",
-                                style: TextStyle(
+                                "${minValue.toStringAsFixed(1)}",
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -151,20 +257,20 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                               ),
                             ],
                           ),
-                          SizedBox(width: 40),
+                          const SizedBox(width: 40),
                           Column(
                             children: [
-                              Text(
+                              const Text(
                                 "Máximo",
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 14,
                                 ),
                               ),
-                              SizedBox(height: 2),
+                              const SizedBox(height: 2),
                               Text(
-                                "3.0",
-                                style: TextStyle(
+                                "${maxValue.toStringAsFixed(1)}",
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -185,28 +291,28 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           Expanded(
                             child: StatBox(
                               title: "Racha",
-                              value: "7 días",
+                              value: "$streak días",
                               valueColor: Colors.black,
                               isBold: true,
                             ),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: StatBox(
                               title: "Más alto",
-                              value: "3.1",
+                              value: maxValue.toStringAsFixed(1),
                               valueColor: Colors.red,
                             ),
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: StatBox(
                               title: "Más bajo",
-                              value: "2.4",
+                              value: minValue.toStringAsFixed(1),
                               valueColor: Colors.green,
                             ),
                           ),
@@ -232,26 +338,57 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Historial de INR',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Historial de INR',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  'Rango: ${inrRange.start.toStringAsFixed(1)}-${inrRange.end.toStringAsFixed(1)}',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 10),
-                            ...historyData.asMap().entries.map(
-                              (entry) => AnimatedHistoryItem(
+                            ...historyData.asMap().entries.map((entry) {
+                              final value =
+                                  entry.value['value']?.toDouble() ?? 0.0;
+                              final isItemInRange =
+                                  value >= inrRange.start &&
+                                  value <= inrRange.end;
+
+                              return AnimatedHistoryItem(
                                 index: entry.key,
                                 item: HistoryItem(
-                                  value:
-                                      entry.value['value']?.toDouble() ?? 0.0,
+                                  value: value,
                                   date: entry.value['date'] ?? '',
                                   time: entry.value['time'] ?? '',
-                                  trend: entry.value['trend'] ?? 'neutral',
+                                  trend: _determineTrend(
+                                    entry.key,
+                                    historyData,
+                                  ),
+                                  isInRange: isItemInRange,
+                                ),
+                              );
+                            }),
+                            if (historyData.isEmpty)
+                              const Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                                  child: Text(
+                                    'No hay registros de INR',
+                                    style: TextStyle(color: Colors.grey),
+                                  ),
                                 ),
                               ),
-                            ),
                           ],
                         ),
                       ),
@@ -315,6 +452,22 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
         ],
       ),
     );
+  }
+
+  // Helper para determinar la tendencia comparando con el valor anterior
+  String _determineTrend(int index, List<Map<String, dynamic>> data) {
+    if (index >= data.length - 1) return 'neutral';
+
+    final currentValue = data[index]['value']?.toDouble() ?? 0.0;
+    final prevValue = data[index + 1]['value']?.toDouble() ?? 0.0;
+
+    if (currentValue > prevValue) {
+      return 'up';
+    } else if (currentValue < prevValue) {
+      return 'down';
+    } else {
+      return 'neutral';
+    }
   }
 }
 
