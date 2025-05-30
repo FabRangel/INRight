@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:inright/features/configurations/providers/medication_config_provider.dart';
-import 'package:inright/features/home/providers/inrProvider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
+import 'package:inright/features/home/providers/inrProvider.dart';
+import 'package:inright/features/configurations/providers/medication_config_provider.dart';
 
 class NextINRCardWidget extends StatelessWidget {
-  const NextINRCardWidget({Key? key}) : super(key: key);
+  const NextINRCardWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
     final inrProvider = Provider.of<InrProvider>(context);
     final configProvider = Provider.of<MedicationConfigProvider>(context);
 
-    // Obtener la última medición
     final historial = inrProvider.inrDatos;
     DateTime? fechaUltimoInr;
 
@@ -27,18 +27,37 @@ class NextINRCardWidget extends StatelessWidget {
           );
         }
       } catch (e) {
-        // Si hay error, deja fechaUltimoInr como null
+        fechaUltimoInr = null;
       }
     }
 
-    // Calcular la próxima
-    String textoFecha = "Aún no has registrado una prueba INR";
+    final now = DateTime.now();
+    String mensaje = "Aún no has registrado una prueba INR";
+    Color fondo = Colors.grey.shade300;
+    IconData icono = Icons.access_time;
+
     if (fechaUltimoInr != null) {
       final proxima = fechaUltimoInr.add(
         Duration(days: configProvider.frecuenciaInr),
       );
-      final format = DateFormat("d MMM", "es");
-      textoFecha = "Próxima toma de INR: ${format.format(proxima)}";
+      final hoy = DateTime(now.year, now.month, now.day);
+      final diaPrueba = DateTime(proxima.year, proxima.month, proxima.day);
+
+      final formato = DateFormat("d MMM", "es");
+
+      if (diaPrueba.isBefore(hoy)) {
+        mensaje = "¡Tu prueba de INR está atrasada!";
+        fondo = Colors.red.shade100;
+        icono = Icons.error;
+      } else if (diaPrueba.isAtSameMomentAs(hoy)) {
+        mensaje = "Hoy debes realizar tu prueba de INR";
+        fondo = Colors.yellow.shade100;
+        icono = Icons.warning_amber;
+      } else {
+        mensaje = "Próxima toma de INR: ${formato.format(diaPrueba)}";
+        fondo = Colors.blue.shade100;
+        icono = Icons.calendar_today;
+      }
     }
 
     return Padding(
@@ -62,15 +81,15 @@ class NextINRCardWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.yellow.shade100,
+                color: fondo,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.calendar_today, color: Colors.black),
+              child: Icon(icono, color: Colors.black87),
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                textoFecha,
+                mensaje,
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
