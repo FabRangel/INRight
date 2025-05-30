@@ -21,8 +21,18 @@ class _HistorialCardState extends State<HistorialCard> {
     final historialFiltrado =
         widget.historial.where((item) {
           if (filtroSeleccionado == FiltroHistorial.todo) return true;
-          return item['tipo'] == filtroSeleccionado.name;
+          return item['tipo']?.toString().toLowerCase() ==
+              filtroSeleccionado.name;
         }).toList();
+
+    // ✅ Ordenar por fecha+hora en todos los casos (puede mantener para todos los filtros)
+    historialFiltrado.sort((a, b) {
+      final fechaA =
+          DateTime.tryParse('${a['fecha']} ${a['hora']}') ?? DateTime(0);
+      final fechaB =
+          DateTime.tryParse('${b['fecha']} ${b['hora']}') ?? DateTime(0);
+      return fechaB.compareTo(fechaA); // Más reciente primero
+    });
 
     return Container(
       padding: const EdgeInsets.all(16),

@@ -15,16 +15,28 @@ class InrProvider extends ChangeNotifier {
   List<Map<String, dynamic>> get inrDatos => _inrDatos;
 
   Future<void> fetchInr() async {
-    _loading = true;
-    notifyListeners();
+  _loading = true;
+  notifyListeners();
 
-    final data = await _inrService.getInrHistory();
-    _inrDatos = data;
-    _inrValores = data.map((e) => (e['value'] as num).toDouble()).toList();
+  final data = await _inrService.getInrHistory();
 
-    _loading = false;
-    notifyListeners();
-  }
+  // 🛠 Añadir el campo 'tipo': 'inr' a cada entrada
+  _inrDatos = data.map((e) => {
+    ...e,
+    'tipo': 'inr',
+    'valor': e['value'],
+    'fecha': e['date'],
+    'hora': e['time'],
+  }).toList();
+
+  _inrValores = _inrDatos
+      .where((e) => e['valor'] != null)
+      .map((e) => (e['valor'] as num).toDouble())
+      .toList();
+
+  _loading = false;
+  notifyListeners();
+}
 
   ModoInr _modo = ModoInr.semanal;
   ModoInr get modo => _modo;
