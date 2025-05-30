@@ -32,6 +32,27 @@ class InrService {
     }
   }
 
+  Future<void> deleteInr(String id) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        print("ERROR: Usuario no autenticado");
+        return;
+      }
+
+      await _firestore
+          .collection('personas')
+          .doc(user.uid)
+          .collection('inr_records')
+          .doc(id)
+          .delete();
+
+      print("✅ Registro INR eliminado: $id");
+    } catch (e) {
+      print("🔥 ERROR al eliminar INR: $e");
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getInrHistory() async {
     final user = _auth.currentUser;
     if (user == null) return [];
@@ -45,6 +66,10 @@ class InrService {
             .limit(10)
             .get();
 
-    return snapshot.docs.map((doc) => doc.data()).toList();
+    return snapshot.docs.map((doc) {
+      final data = doc.data();
+      data['id'] = doc.id; // agrega el ID del documento
+      return data;
+    }).toList();
   }
 }

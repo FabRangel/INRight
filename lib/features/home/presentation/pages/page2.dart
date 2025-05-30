@@ -478,17 +478,111 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                                   value >= inrRange.start &&
                                   value <= inrRange.end;
 
-                              return AnimatedHistoryItem(
-                                index: entry.key,
-                                item: HistoryItem(
-                                  value: value,
-                                  date: entry.value['date'] ?? '',
-                                  time: entry.value['time'] ?? '',
-                                  trend: _determineTrend(
-                                    entry.key,
-                                    historyData,
+                              return Dismissible(
+                                key: Key(entry.key.toString()),
+                                background: Container(
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 6,
                                   ),
-                                  isInRange: isItemInRange,
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade100,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  alignment: Alignment.centerLeft,
+                                  child: const Icon(
+                                    Icons.settings,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                secondaryBackground: Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade100,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  alignment: Alignment.centerRight,
+                                  margin: const EdgeInsets.symmetric(
+                                    vertical: 6,
+                                  ),
+                                  padding: const EdgeInsets.all(12),
+                                  child: const Icon(
+                                    Icons.delete,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                confirmDismiss: (direction) async {
+                                  if (direction ==
+                                      DismissDirection.endToStart) {
+                                    // Eliminar
+                                    final confirm = await showDialog<bool>(
+                                      context: context,
+                                      builder:
+                                          (ctx) => AlertDialog(
+                                            title: const Text(
+                                              "Eliminar registro",
+                                            ),
+                                            content: const Text(
+                                              "¿Seguro que deseas eliminar este registro?",
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () => Navigator.of(
+                                                      ctx,
+                                                    ).pop(false),
+                                                child: const Text("Cancelar"),
+                                              ),
+                                              TextButton(
+                                                onPressed:
+                                                    () => Navigator.of(
+                                                      ctx,
+                                                    ).pop(true),
+                                                child: const Text("Eliminar"),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                    if (confirm == true) {
+                                      await InrService().deleteInr(
+                                        entry.value['id'],
+                                      );
+                                      setState(
+                                        () => historyData.removeAt(entry.key),
+                                      );
+                                    }
+                                    return confirm ?? false;
+                                  } else {
+                                    final resultado =
+                                        await showModalBottomSheet(
+                                          context: context,
+                                          isScrollControlled: true,
+                                          shape: const RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.vertical(
+                                              top: Radius.circular(25),
+                                            ),
+                                          ),
+                                          builder:
+                                              (_) => AddInrForm(
+                                                existingData: entry.value,
+                                              ),
+                                        );
+                                    if (resultado == "guardado")
+                                      await _loadInrHistory();
+                                    return false;
+                                  }
+                                },
+                                child: AnimatedHistoryItem(
+                                  index: entry.key,
+                                  item: HistoryItem(
+                                    value: value,
+                                    date: entry.value['date'] ?? '',
+                                    time: entry.value['time'] ?? '',
+                                    trend: _determineTrend(
+                                      entry.key,
+                                      historyData,
+                                    ),
+                                    isInRange: isItemInRange,
+                                  ),
                                 ),
                               );
                             }),

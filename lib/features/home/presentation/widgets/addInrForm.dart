@@ -6,14 +6,23 @@ import 'package:inright/services/home/inr.service.dart';
 final _inrService = InrService();
 
 class AddInrForm extends StatefulWidget {
-  const AddInrForm({super.key});
+  final Map<String, dynamic>? existingData;
+  const AddInrForm({Key? key, this.existingData}) : super(key: key);
 
   @override
   State<AddInrForm> createState() => _AddInrFormState();
 }
 
 class _AddInrFormState extends State<AddInrForm> {
-  final TextEditingController _inrController = TextEditingController();
+  // final TextEditingController _inrController = TextEditingController();
+  late final TextEditingController _inrController;
+  @override
+  void initState() {
+    super.initState();
+    _inrController = TextEditingController(
+      text: widget.existingData?['value']?.toString() ?? '',
+    );
+  }
 
   @override
   void dispose() {
