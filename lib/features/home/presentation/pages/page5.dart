@@ -185,33 +185,39 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
         context,
         listen: false,
       );
-      provider
-        ..generarDosisSegunEsquema(silent: true)
-        ..marcarFaltas();
 
-      /// Sincroniza con dosis tomadas en Firestore
-      final firestoreDoses = await DosisService().getDosesHistory();
+      if (!provider.dosisSincronizadas) {
+        final firestoreDoses = await DosisService().getDosesHistory();
 
-      for (var local in provider.dosisGeneradas) {
-        final fechaStr =
-            '${local.fecha.year}-${local.fecha.month.toString().padLeft(2, '0')}-${local.fecha.day.toString().padLeft(2, '0')}';
-        final coincidencia = firestoreDoses.firstWhere(
-          (f) => f['fecha'] == fechaStr && f['hora'] == local.hora,
-          orElse: () => {},
-        );
-        if (coincidencia.isNotEmpty) {
-          local.tomada = true;
-          local.estado = coincidencia['estado'] ?? 'ok';
-          local.horaToma =
-              coincidencia['horaToma'] != null
-                  ? DateTime.parse(coincidencia['horaToma'])
-                  : DateTime.now();
+        provider
+          ..generarDosisSegunEsquema(silent: true)
+          ..marcarFaltas();
+
+        for (var local in provider.dosisGeneradas) {
+          final fechaStr =
+              '${local.fecha.year}-${local.fecha.month.toString().padLeft(2, '0')}-${local.fecha.day.toString().padLeft(2, '0')}';
+          final coincidencia = firestoreDoses.firstWhere(
+            (f) => f['fecha'] == fechaStr && f['hora'] == local.hora,
+            orElse: () => {},
+          );
+          if (coincidencia.isNotEmpty) {
+            local.tomada = true;
+            local.estado = coincidencia['estado'] ?? 'ok';
+            local.horaToma =
+                coincidencia['horaToma'] != null
+                    ? DateTime.parse(coincidencia['horaToma'])
+                    : DateTime.now();
+          }
         }
+
+        provider.marcarComoSincronizadas();
       }
 
-      setState(() {
-        _inicializarMensajeYTimer();
-      });
+      if (mounted) {
+        setState(() {
+          _inicializarMensajeYTimer();
+        });
+      }
     });
 
     // notificaciones locales (sin cambios)
@@ -352,6 +358,8 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
   }
 
   void _inicializarMensajeYTimer() {
+    if (!mounted) return; // Seguridad extra
+
     final provider = Provider.of<MedicationConfigProvider>(
       context,
       listen: false,
@@ -363,11 +371,14 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
           () => DosisDiaria(fecha: hoy, dosis: 0, hora: '00:00', diaSemana: ''),
     );
 
-    setState(() => message = _getDoseMessage(dosisHoy.hora));
+    setState(() => message = _getDoseMessage(dosisHoy.hora, provider));
 
     timer = Timer.periodic(const Duration(minutes: 1), (_) {
-      final nuevo = _getDoseMessage(dosisHoy.hora);
-      if (nuevo != message) setState(() => message = nuevo);
+      if (!mounted) return; // Protección contra error
+      final nuevo = _getDoseMessage(dosisHoy.hora, provider);
+      if (nuevo != message) {
+        setState(() => message = nuevo);
+      }
     });
   }
 
@@ -716,14 +727,12 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
     }
   }
 
-  String _getDoseMessage(String doseTimeStr) {
+  String _getDoseMessage(
+    String doseTimeStr,
+    MedicationConfigProvider provider,
+  ) {
     final now = DateTime.now();
-    final provider = Provider.of<MedicationConfigProvider>(
-      context,
-      listen: false,
-    );
 
-    // a) Si la dosis de hoy está confirmada → mostrar siguiente pendiente
     final dosisHoy = provider.dosisGeneradas.firstWhere(
       (d) => _esMismoDia(d.fecha, now),
       orElse:
@@ -740,7 +749,6 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
       return 'Faltan ${h}h ${m}m para tu próxima dosis';
     }
 
-    // b) Si todavía no la has tomado → lógica de antes
     final partes = doseTimeStr.split(':');
     final fechaHoraDosis = DateTime(
       now.year,

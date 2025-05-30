@@ -69,6 +69,15 @@ class MedicationConfigProvider extends ChangeNotifier {
   DateTime? get fechaInicioEsquema => _fechaInicioEsquema;
   bool get hasFechaInicio => _fechaInicioEsquema != null;
 
+  bool _dosisSincronizadas = false;
+
+  bool get dosisSincronizadas => _dosisSincronizadas;
+
+  void marcarComoSincronizadas() {
+    _dosisSincronizadas = true;
+    notifyListeners(); // opcional
+  }
+
   final List<String> _anticoagulantesDisponibles = [
     "Sintróm",
     "Warfarina",
