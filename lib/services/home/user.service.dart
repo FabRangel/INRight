@@ -158,6 +158,33 @@ class UserService {
     }
   }
 
+  Future<void> updateUserPhoto(String photoUrl) async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      await _firestore.collection('personas').doc(user.uid).update({
+        'photoUrl': photoUrl,
+      });
+
+      // También actualiza caché local
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('cached_user_photo', photoUrl);
+
+      // Actualiza caché en memoria
+      if (_cachedUserData != null) {
+        _cachedUserData = UserData(
+          name: _cachedUserData!.name,
+          email: _cachedUserData!.email,
+          photoUrl: photoUrl,
+          lastFetched: DateTime.now(),
+        );
+      }
+    } catch (e) {
+      print("❌ Error al actualizar photoUrl en Firestore: $e");
+    }
+  }
+
   // Método para invalidar el caché cuando se necesite una actualización forzada
   void invalidateCache() {
     _cachedUserData = null;

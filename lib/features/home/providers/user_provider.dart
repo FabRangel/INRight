@@ -218,6 +218,23 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateProfilePhoto(String imageUrl) async {
+  try {
+    _photoUrl = imageUrl;
+
+    // Actualiza en Firebase (debes implementarlo en UserService)
+    await _userService.updateUserPhoto(imageUrl);
+
+    // Guarda en caché local
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('cached_user_photo', imageUrl);
+
+    if (!_disposed) notifyListeners();
+  } catch (e) {
+    print("❌ Error al actualizar la foto de perfil: $e");
+  }
+}
+
   @override
   void dispose() {
     _disposed = true;

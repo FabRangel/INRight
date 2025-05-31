@@ -1,5 +1,6 @@
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:flutter/material.dart';
+import 'package:inright/services/storage/storage.service.dart';
 import 'package:inright/features/home/presentation/widgets/appBarNotifications.dart';
 import 'package:inright/features/home/presentation/widgets/medicationHourConfiguration.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +8,8 @@ import 'package:inright/features/configurations/providers/medication_config_prov
 import 'package:inright/features/configurations/providers/profile_config_provider.dart';
 import 'package:inright/features/configurations/providers/notification_config_provider.dart';
 import 'package:inright/services/configurations/medication_config.service.dart';
-
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'package:inright/services/home/user.service.dart';
 import 'package:inright/features/home/providers/user_provider.dart';
 
@@ -137,6 +139,45 @@ class _ConfigurationsState extends State<Configurations> {
 
   // Método para construir el contenido dinámico
   Widget _buildContent() {
+    File? _image;
+    Future<void> _pickImage() async {
+      final picker = ImagePicker();
+      final picked = await picker.pickImage(source: ImageSource.gallery);
+
+      if (picked != null) {
+        final imageFile = File(picked.path);
+        setState(() {
+          _image = imageFile;
+        });
+
+        final imageUrl = await StorageService.uploadProfileImage(imageFile);
+
+        if (imageUrl != null) {
+          final userProvider = Provider.of<UserProvider>(
+            context,
+            listen: false,
+          );
+          await userProvider.updateProfilePhoto(imageUrl);
+
+          _showTopSnackBar(
+            context,
+            "Imagen actualizada",
+            "Tu imagen de perfil se ha guardado correctamente.",
+            ContentType.success,
+            Colors.green,
+          );
+        } else {
+          _showTopSnackBar(
+            context,
+            "Error",
+            "No se pudo subir la imagen, intenta de nuevo.",
+            ContentType.failure,
+            Colors.red,
+          );
+        }
+      }
+    }
+
     switch (_selectedIndex) {
       case 0:
         return Consumer<ProfileConfigProvider>(
@@ -162,22 +203,29 @@ class _ConfigurationsState extends State<Configurations> {
                     children: [
                       Stack(
                         children: [
-                          const CircleAvatar(
+                          CircleAvatar(
                             radius: 40,
-                            backgroundImage: AssetImage(
-                              "assets/images/persona.jpg",
-                            ),
+                            backgroundImage:
+                                _image != null
+                                    ? FileImage(_image!)
+                                    : const AssetImage(
+                                          "assets/images/persona.jpg",
+                                        )
+                                        as ImageProvider,
                           ),
                           Positioned(
                             bottom: 0,
                             right: 0,
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.white,
+                            child: InkWell(
+                              onTap: _pickImage,
+                              child: Container(
+                                decoration: const BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                ),
+                                padding: const EdgeInsets.all(4),
+                                child: const Icon(Icons.camera_alt, size: 16),
                               ),
-                              padding: const EdgeInsets.all(4),
-                              child: const Icon(Icons.camera_alt, size: 16),
                             ),
                           ),
                         ],
