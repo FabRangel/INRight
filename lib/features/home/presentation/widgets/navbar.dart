@@ -80,44 +80,68 @@ class _HomeState extends State<Navbar> {
         notchBottomBarController: _controller,
         color: Colors.white,
         showLabel: false,
-        kBottomRadius: 40.0,
-        bottomBarWidth: MediaQuery.of(context).size.width - 40,
+        kBottomRadius: 30.0,
+        bottomBarWidth: MediaQuery.of(context).size.width,
         removeMargins: true,
         showShadow: true,
-        shadowElevation: 10,
+        shadowElevation: 5,
         notchColor: const Color.fromARGB(255, 114, 193, 224),
         durationInMilliSeconds: 300,
         kIconSize: 24.0,
         bottomBarItems: [
           BottomBarItem(
-            inActiveItem: Transform.translate(
-              offset: Offset(-4, 0),
-              child: Icon(Icons.show_chart, color: Colors.grey.shade600),
+            inActiveItem: SizedBox(
+              width: 48,
+              height: 48,
+              child: Padding(
+                padding: EdgeInsets.only(left: 1.5),
+                child: Icon(Icons.show_chart, color: Colors.grey.shade600),
+              ),
             ),
             activeItem: _buildActiveIcon(Icons.show_chart),
           ),
-
           BottomBarItem(
-            inActiveItem: Icon(Icons.water_drop, color: Colors.grey.shade600),
+            inActiveItem: SizedBox(
+              width: 48,
+              height: 48,
+              child: Padding(
+                padding: EdgeInsets.only(right: 1),
+                child: Icon(Icons.water_drop, color: Colors.grey.shade600),
+              ),
+            ),
             activeItem: _buildActiveIcon(Icons.water_drop),
           ),
+          // Ítem central (normal)
           BottomBarItem(
-            inActiveItem: Center(
+            inActiveItem: SizedBox(
+              width: 48,
+              height: 48,
               child: Icon(Icons.home_filled, color: Colors.blueGrey),
             ),
             activeItem: _buildActiveIcon(Icons.home_filled),
           ),
           BottomBarItem(
-            inActiveItem: Icon(
-              Icons.medication_sharp,
-              color: Colors.grey.shade600,
+            inActiveItem: SizedBox(
+              width: 48,
+              height: 48,
+              child: Padding(
+                padding: EdgeInsets.only(left: 3), // ← más espacio artificial
+                child: Icon(
+                  Icons.medication_sharp,
+                  color: Colors.grey.shade600,
+                ),
+              ),
             ),
             activeItem: _buildActiveIcon(Icons.medication_sharp),
           ),
           BottomBarItem(
-            inActiveItem: Icon(
-              Icons.notifications,
-              color: Colors.grey.shade600,
+            inActiveItem: SizedBox(
+              width: 48,
+              height: 48,
+              child: Padding(
+                padding: EdgeInsets.only(right: 4.5), // ← aún más compensación
+                child: Icon(Icons.notifications, color: Colors.grey.shade600),
+              ),
             ),
             activeItem: _buildActiveIcon(Icons.notifications),
           ),
@@ -141,13 +165,17 @@ class _HomeState extends State<Navbar> {
   }
 
   Widget _buildActiveIcon(IconData icon) {
-    return Container(
-      alignment: Alignment.center, // Asegura el centrado
-      decoration: const BoxDecoration(
-        color: Color.fromARGB(255, 114, 193, 224),
-        shape: BoxShape.circle, // Opcional para mantener simetría
+    return SizedBox(
+      width: 48, // ancho fijo
+      height: 48, // alto fijo
+      child: Container(
+        alignment: Alignment.center,
+        decoration: const BoxDecoration(
+          color: Color.fromARGB(255, 114, 193, 224),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, color: Colors.white, size: 24.0), // igual a los otros
       ),
-      child: Icon(icon, color: Colors.white, size: 25.0),
     );
   }
 }
