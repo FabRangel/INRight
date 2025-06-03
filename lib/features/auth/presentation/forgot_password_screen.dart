@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import './email_verification_modal.dart';
 import './widgets/custom_button.dart';
@@ -73,14 +74,28 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       CustomButton(
                         label: "Restablecer Contraseña",
                         buttonColor: const Color(0xFF6CAFB7),
-                        onPressed: () {
+                        onPressed: () async {
                           if (_formKey.currentState!.validate()) {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return const EmailVerificationModal();
-                              },
-                            );
+                            final email = _emailController.text.trim();
+
+                            try {
+                              await FirebaseAuth.instance
+                                  .sendPasswordResetEmail(email: email);
+                              showDialog(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return const EmailVerificationModal(); // 👈 Ya lo usas aquí
+                                },
+                              );
+                            } catch (e) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Error al enviar correo: ${e.toString()}',
+                                  ),
+                                ),
+                              );
+                            }
                           }
                         },
                       ),
