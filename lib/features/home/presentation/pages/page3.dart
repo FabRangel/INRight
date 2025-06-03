@@ -29,7 +29,7 @@ class Page3 extends StatelessWidget {
                   width: double.infinity,
                   padding: EdgeInsets.only(
                     top: topPadding,
-                    bottom: screenHeight * 0.05,
+                    bottom: screenHeight * 0.02,
                   ),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(

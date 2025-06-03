@@ -27,11 +27,7 @@ class AppBarNotificationsState extends State<AppBarNotifications> {
       children: [
         const SizedBox(height: 20),
         IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-            size: 36,
-          ),
+          icon: const Icon(Icons.arrow_back, color: Colors.white, size: 36),
           onPressed: () {
             Navigator.pushNamed(context, '/home');
           },
@@ -53,10 +49,7 @@ class AppBarNotificationsState extends State<AppBarNotifications> {
               SizedBox(height: 6),
               Text(
                 "Personaliza tu experiencia",
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 15,
-                ),
+                style: TextStyle(color: Colors.white70, fontSize: 15),
               ),
             ],
           ),
@@ -68,7 +61,7 @@ class AppBarNotificationsState extends State<AppBarNotifications> {
           children: [
             _buildOption(0, "Perfil"),
             _buildOption(1, "Medicación"),
-            _buildOption(2, "Notificaciones"),
+            _buildOption(2, "Alertas"),
           ],
         ),
       ],

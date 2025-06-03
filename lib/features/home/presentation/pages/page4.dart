@@ -119,42 +119,55 @@ class _Page4State extends State<Page4> {
                   ),
                   const SizedBox(height: 10),
                   // Selector de día L-D
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children:
-                        ['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((l) {
-                          const map = {
-                            'L': 'lunes',
-                            'M': 'martes',
-                            'X': 'miércoles',
-                            'J': 'jueves',
-                            'V': 'viernes',
-                            'S': 'sábado',
-                            'D': 'domingo',
-                          };
-                          final dia = map[l]!;
-                          return GestureDetector(
-                            onTap: () => setState(() => _selectedDay = dia),
-                            child: _DiaTexto(
-                              l,
-                              seleccionado: dia == _selectedDay,
-                            ),
-                          );
-                        }).toList(),
+                  //
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children:
+                          ['L', 'M', 'X', 'J', 'V', 'S', 'D'].map((l) {
+                            const map = {
+                              'L': 'lunes',
+                              'M': 'martes',
+                              'X': 'miércoles',
+                              'J': 'jueves',
+                              'V': 'viernes',
+                              'S': 'sábado',
+                              'D': 'domingo',
+                            };
+                            final dia = map[l]!;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                              ),
+                              child: GestureDetector(
+                                onTap: () => setState(() => _selectedDay = dia),
+                                child: _DiaTexto(
+                                  l,
+                                  seleccionado: dia == _selectedDay,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                    ),
                   ),
                 ],
               ),
             ),
           ),
           // Sección scrollable
-          Positioned.fill(
+          Positioned(
             top: 320,
-            child: _HistorialSection(
-              historial: historial,
-              cumplimiento: _cumplimiento(historial),
-              horaProm: _horaPromedio(historial),
-              horaLegible: _horaLegible,
-              fechaLegible: _fechaLegible,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: ClipRect(
+              child: _HistorialSection(
+                historial: historial,
+                cumplimiento: _cumplimiento(historial),
+                horaProm: _horaPromedio(historial),
+                horaLegible: _horaLegible,
+                fechaLegible: _fechaLegible,
+              ),
             ),
           ),
         ],
@@ -186,7 +199,7 @@ class _HistorialSection extends StatelessWidget {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 15),
             child: Row(
               children: [
                 Expanded(

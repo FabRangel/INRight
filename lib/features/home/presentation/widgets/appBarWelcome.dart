@@ -58,7 +58,7 @@ class _AppBarWelcomeState extends State<AppBarWelcome> {
                       ),
                     )
                     : Text(
-                      "¡Hola, ${userProvider.userName}!",
+                      "¡Hola, ${userProvider.userName.split(' ').first}!",
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 20,

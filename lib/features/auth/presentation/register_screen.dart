@@ -122,11 +122,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 10),
-                  CustomButton(
-                    label: "Registrarse con Google",
-                    isGoogle: true,
-                    onPressed: () {},
-                  ),
+                  // CustomButton(
+                  //   label: "Registrarse con Google",
+                  //   isGoogle: true,
+                  //   onPressed: () {},
+                  // ),
                   const SizedBox(height: 10),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,

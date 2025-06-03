@@ -175,7 +175,21 @@ class _LoginScreenState extends State<LoginScreen> {
               CustomButton(
                 label: "Iniciar Sesión con Google",
                 isGoogle: true,
-                onPressed: () {},
+                onPressed: () async {
+                  final credential =
+                      await _firebaseAuthService.signInWithGoogle();
+
+                  if (credential != null) {
+                    // ¡Éxito! Puedes redirigir a la pantalla principal
+                    Navigator.pushReplacementNamed(context, '/home');
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Error al iniciar sesión con Google'),
+                      ),
+                    );
+                  }
+                },
               ),
               const SizedBox(height: 10),
               Row(

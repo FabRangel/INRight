@@ -26,7 +26,7 @@ class _InfoCardState extends State<InfoCard> {
 
   Future<void> _loadInrData() async {
     final inrData = await Page2.getInrData(context);
-
+    if (!mounted) return;
     // Calcular el porcentaje de cumplimiento basado en dosis tomadas
     final provider = Provider.of<MedicationConfigProvider>(
       context,
