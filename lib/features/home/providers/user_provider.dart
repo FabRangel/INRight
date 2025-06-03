@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:inright/services/home/user.service.dart';
 import 'package:inright/services/auth/firebaseAuth.service.dart';
@@ -6,10 +7,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class UserProvider with ChangeNotifier {
   final UserService _userService = UserService();
   final FirebaseAuthService _authService = FirebaseAuthService();
+  String? _photoUrl; // ya lo tienes
+  String get userProfilePhotoUrl => _photoUrl ?? '';
 
   String _userName = 'Usuario';
   String _userEmail = 'No autenticado';
-  String? _photoUrl;
   bool _isLoading = true;
   bool _isAuthenticated = false;
   bool _disposed = false;
@@ -219,21 +221,33 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> updateProfilePhoto(String imageUrl) async {
-  try {
-    _photoUrl = imageUrl;
+    try {
+      _photoUrl = imageUrl;
 
-    // Actualiza en Firebase (debes implementarlo en UserService)
-    await _userService.updateUserPhoto(imageUrl);
+      // Actualiza en Firebase (debes implementarlo en UserService)
+      await _userService.updateUserPhoto(imageUrl);
 
-    // Guarda en caché local
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('cached_user_photo', imageUrl);
+      // Guarda en caché local
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('cached_user_photo', imageUrl);
+      final userId = _authService.currentUser?.uid;
 
-    if (!_disposed) notifyListeners();
-  } catch (e) {
-    print("❌ Error al actualizar la foto de perfil: $e");
+      if (userId != null) {
+        await FirebaseFirestore.instance.collection('users').doc(userId).update(
+          {'photoUrl': imageUrl},
+        );
+      }
+
+      // Guardar en preferencias locales
+      await prefs.setString('cached_user_photo', imageUrl);
+
+      notifyListeners();
+
+      if (!_disposed) notifyListeners();
+    } catch (e) {
+      print("❌ Error al actualizar la foto de perfil: $e");
+    }
   }
-}
 
   @override
   void dispose() {

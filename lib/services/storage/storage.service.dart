@@ -12,8 +12,10 @@ class StorageService {
     }
 
     final uid = user.uid;
-    final path = 'profile_images/$uid.jpg';
-    final ref = FirebaseStorage.instance.ref(path);
+    final ref = FirebaseStorage.instance
+        .ref()
+        .child('profile_images')
+        .child(uid); // sin .jpg
 
     // 👉 Asegúrate de imprimir FULLPATH
     print('🔍 [StorageService] UID actual: $uid');
@@ -24,6 +26,7 @@ class StorageService {
       await ref.putFile(file, SettableMetadata(contentType: 'image/jpeg'));
       final url = await ref.getDownloadURL();
       print('✔ [StorageService] Subida terminada. URL: $url');
+      print('📛 Comparando UID "${user.uid}" con ref.name: "${ref.name}"');
       return url;
     } on FirebaseException catch (e) {
       print('❌ [StorageService] Error (${e.code}): ${e.message}');

@@ -1,26 +1,46 @@
 import 'package:flutter/material.dart';
 import 'package:inright/features/auth/presentation/login_screen.dart';
-import 'package:inright/features/home/presentation/widgets/navbar.dart'; // 👈 Importa Navbar
+import 'package:inright/features/home/presentation/widgets/navbar.dart';
+import 'package:inright/features/home/providers/user_provider.dart';
+import 'package:provider/provider.dart'; // 👈 Importa Navbar
 
 class Sidebar extends StatelessWidget {
   const Sidebar({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    final userProvider = Provider.of<UserProvider>(context);
+    final photoUrl = userProvider.userProfilePhotoUrl;
+    final userName = userProvider.userName;
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: [
-          const DrawerHeader(
-            decoration: BoxDecoration(color: Color.fromARGB(255, 98, 175, 198)),
+          DrawerHeader(
+            decoration: const BoxDecoration(
+              color: Color.fromARGB(255, 98, 175, 198),
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.account_circle, size: 50, color: Colors.white),
-                SizedBox(height: 10),
+                CircleAvatar(
+                  radius: 40,
+                  backgroundColor: Colors.grey[100],
+                  backgroundImage:
+                      photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                  child:
+                      photoUrl.isEmpty
+                          ? const Icon(
+                            Icons.account_circle,
+                            size: 50,
+                            color: Colors.white,
+                          )
+                          : null,
+                ),
+                const SizedBox(height: 10),
                 Text(
-                  "Usuario",
-                  style: TextStyle(fontSize: 20, color: Colors.white),
+                  userName,
+                  style: const TextStyle(fontSize: 20, color: Colors.white),
                 ),
               ],
             ),

@@ -200,25 +200,25 @@ class _dataBoxState extends State<dataBox> {
             ],
           ),
           const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.refresh, color: Colors.white),
-                SizedBox(width: 5),
-                Text(
-                  "Sugerir dosis con IA",
-                  style: TextStyle(color: Colors.white, fontSize: 14),
-                ),
-              ],
-            ),
-          ),
+          // Container(
+          //   padding: const EdgeInsets.symmetric(vertical: 8),
+          //   alignment: Alignment.center,
+          //   decoration: BoxDecoration(
+          //     color: Colors.white.withOpacity(0.2),
+          //     borderRadius: BorderRadius.circular(15),
+          //   ),
+          //   child: const Row(
+          //     mainAxisAlignment: MainAxisAlignment.center,
+          //     children: [
+          //       Icon(Icons.refresh, color: Colors.white),
+          //       SizedBox(width: 5),
+          //       Text(
+          //         "Sugerir dosis con IA",
+          //         style: TextStyle(color: Colors.white, fontSize: 14),
+          //       ),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );

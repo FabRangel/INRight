@@ -27,6 +27,7 @@ class _ConfigurationsState extends State<Configurations> {
   bool _modoEdicionAnticoagulante = false;
   final UserService _userService = UserService();
   final _medicationConfigService = MedicationConfigService();
+  bool _isUploadingImage = false;
 
   String _userName = 'Usuario';
   bool _isLoading = true;
@@ -137,6 +138,7 @@ class _ConfigurationsState extends State<Configurations> {
     );
   }
 
+  String? _uploadedImageUrl;
   // Método para construir el contenido dinámico
   Widget _buildContent() {
     File? _image;
@@ -148,6 +150,7 @@ class _ConfigurationsState extends State<Configurations> {
         final imageFile = File(picked.path);
         setState(() {
           _image = imageFile;
+          _isUploadingImage = true;
         });
 
         final imageUrl = await StorageService.uploadProfileImage(imageFile);
@@ -157,7 +160,13 @@ class _ConfigurationsState extends State<Configurations> {
             context,
             listen: false,
           );
+          
           await userProvider.updateProfilePhoto(imageUrl);
+
+          setState(() {
+            _uploadedImageUrl = imageUrl;
+            _isUploadingImage = false;
+          });
 
           _showTopSnackBar(
             context,
@@ -167,6 +176,10 @@ class _ConfigurationsState extends State<Configurations> {
             Colors.green,
           );
         } else {
+          setState(() {
+            _isUploadingImage = false;
+          });
+
           _showTopSnackBar(
             context,
             "Error",
@@ -208,10 +221,26 @@ class _ConfigurationsState extends State<Configurations> {
                             backgroundImage:
                                 _image != null
                                     ? FileImage(_image!)
-                                    : const AssetImage(
-                                          "assets/images/persona.jpg",
+                                    : _uploadedImageUrl != null
+                                    ? NetworkImage(_uploadedImageUrl!)
+                                    : null,
+                            backgroundColor: Colors.grey.shade200,
+                            child:
+                                _isUploadingImage
+                                    ? const CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.grey,
+                                      ),
+                                    )
+                                    : (_image == null &&
+                                            _uploadedImageUrl == null
+                                        ? const Icon(
+                                          Icons.person,
+                                          size: 40,
+                                          color: Colors.grey,
                                         )
-                                        as ImageProvider,
+                                        : null),
                           ),
                           Positioned(
                             bottom: 0,

@@ -79,14 +79,22 @@ class _AppBarWelcomeState extends State<AppBarWelcome> {
                   },
                   child: CircleAvatar(
                     radius: 30,
-                    backgroundColor: Colors.white, // Borde blanco
-                    child: const CircleAvatar(
+                    backgroundColor: Colors.white,
+                    child: CircleAvatar(
                       radius: 28,
-                      child: Icon(
-                        Icons.account_circle,
-                        size: 50,
-                        color: Colors.white,
-                      ),
+                      backgroundColor: Colors.grey.shade200,
+                      backgroundImage:
+                          userProvider.userProfilePhotoUrl.isNotEmpty
+                              ? NetworkImage(userProvider.userProfilePhotoUrl)
+                              : null,
+                      child:
+                          userProvider.userProfilePhotoUrl.isEmpty
+                              ? const Icon(
+                                Icons.account_circle,
+                                size: 50,
+                                color: Colors.white,
+                              )
+                              : null,
                     ),
                   ),
                 );
