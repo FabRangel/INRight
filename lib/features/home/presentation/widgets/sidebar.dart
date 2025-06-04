@@ -39,7 +39,7 @@ class Sidebar extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  userName,
+                  '${userName.split(' ')[0]} ${userName.split(' ')[1]}', // Muestra solo el primer nombre
                   style: const TextStyle(fontSize: 20, color: Colors.white),
                 ),
               ],

@@ -66,7 +66,7 @@ class _AppBarWelcomeState extends State<AppBarWelcome> {
                       ),
                     ),
                 const Text(
-                  "Bienvenida a tu control INR",
+                  "Tu salud en el rango correcto",
                   style: TextStyle(color: Colors.white, fontSize: 16),
                 ),
               ],

@@ -36,6 +36,7 @@ class MedicationConfigService {
           'start': data['inrRange']['start'],
           'end': data['inrRange']['end'],
         },
+        'frecuenciaInr': data['frecuenciaInr'],
         'updatedAt': FieldValue.serverTimestamp(),
       };
 
@@ -135,6 +136,30 @@ class MedicationConfigService {
     } catch (e) {
       print("🔥 ERROR al cargar configuración de medicación: $e");
       // En caso de error, mantenemos los valores predeterminados
+    }
+  }
+
+  //Método para guardar la frecuencia de inr
+  Future<void> saveFrecuenciaInr(int frequency) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        return;
+      }
+
+      final configRef = _firestore
+          .collection('personas')
+          .doc(user.uid)
+          .collection('configs')
+          .doc('medication');
+
+      await configRef.set({
+        'frecuenciaInr': frequency,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } catch (e) {
+      print("🔥 ERROR al guardar frecuencia de INR: $e");
+      throw e;
     }
   }
 }

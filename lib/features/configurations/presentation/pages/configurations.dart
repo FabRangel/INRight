@@ -28,6 +28,8 @@ class _ConfigurationsState extends State<Configurations> {
   final UserService _userService = UserService();
   final _medicationConfigService = MedicationConfigService();
   bool _isUploadingImage = false;
+  File? _image;
+  String? _uploadedImageUrl;
 
   String _userName = 'Usuario';
   bool _isLoading = true;
@@ -88,6 +90,51 @@ class _ConfigurationsState extends State<Configurations> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery);
+
+    if (picked != null) {
+      final imageFile = File(picked.path);
+      setState(() {
+        _image = imageFile;
+        _isUploadingImage = true;
+      });
+
+      final imageUrl = await StorageService.uploadProfileImage(imageFile);
+
+      if (imageUrl != null) {
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        await userProvider.updateProfilePhoto(imageUrl);
+
+        setState(() {
+          _uploadedImageUrl = imageUrl;
+          _isUploadingImage = false;
+        });
+
+        _showTopSnackBar(
+          context,
+          "Imagen actualizada",
+          "Tu imagen de perfil se ha guardado correctamente.",
+          ContentType.success,
+          Colors.green,
+        );
+      } else {
+        setState(() {
+          _isUploadingImage = false;
+        });
+
+        _showTopSnackBar(
+          context,
+          "Error",
+          "No se pudo subir la imagen, intenta de nuevo.",
+          ContentType.failure,
+          Colors.red,
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenHeight = MediaQuery.of(context).size.height;
@@ -138,59 +185,8 @@ class _ConfigurationsState extends State<Configurations> {
     );
   }
 
-  String? _uploadedImageUrl;
   // Método para construir el contenido dinámico
   Widget _buildContent() {
-    File? _image;
-    Future<void> _pickImage() async {
-      final picker = ImagePicker();
-      final picked = await picker.pickImage(source: ImageSource.gallery);
-
-      if (picked != null) {
-        final imageFile = File(picked.path);
-        setState(() {
-          _image = imageFile;
-          _isUploadingImage = true;
-        });
-
-        final imageUrl = await StorageService.uploadProfileImage(imageFile);
-
-        if (imageUrl != null) {
-          final userProvider = Provider.of<UserProvider>(
-            context,
-            listen: false,
-          );
-          
-          await userProvider.updateProfilePhoto(imageUrl);
-
-          setState(() {
-            _uploadedImageUrl = imageUrl;
-            _isUploadingImage = false;
-          });
-
-          _showTopSnackBar(
-            context,
-            "Imagen actualizada",
-            "Tu imagen de perfil se ha guardado correctamente.",
-            ContentType.success,
-            Colors.green,
-          );
-        } else {
-          setState(() {
-            _isUploadingImage = false;
-          });
-
-          _showTopSnackBar(
-            context,
-            "Error",
-            "No se pudo subir la imagen, intenta de nuevo.",
-            ContentType.failure,
-            Colors.red,
-          );
-        }
-      }
-    }
-
     switch (_selectedIndex) {
       case 0:
         return Consumer<ProfileConfigProvider>(
@@ -221,8 +217,18 @@ class _ConfigurationsState extends State<Configurations> {
                             backgroundImage:
                                 _image != null
                                     ? FileImage(_image!)
-                                    : _uploadedImageUrl != null
-                                    ? NetworkImage(_uploadedImageUrl!)
+                                    : (Provider.of<UserProvider>(
+                                              context,
+                                            ).photoUrl !=
+                                            null &&
+                                        Provider.of<UserProvider>(
+                                          context,
+                                        ).photoUrl!.isNotEmpty)
+                                    ? NetworkImage(
+                                      Provider.of<UserProvider>(
+                                        context,
+                                      ).photoUrl!,
+                                    )
                                     : null,
                             backgroundColor: Colors.grey.shade200,
                             child:
@@ -233,14 +239,7 @@ class _ConfigurationsState extends State<Configurations> {
                                         Colors.grey,
                                       ),
                                     )
-                                    : (_image == null &&
-                                            _uploadedImageUrl == null
-                                        ? const Icon(
-                                          Icons.person,
-                                          size: 40,
-                                          color: Colors.grey,
-                                        )
-                                        : null),
+                                    : null,
                           ),
                           Positioned(
                             bottom: 0,

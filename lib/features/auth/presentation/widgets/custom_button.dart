@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class CustomButton extends StatelessWidget {
   final String label;
@@ -23,14 +24,15 @@ class CustomButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: isGoogle ? const BorderSide(color: Colors.grey) : BorderSide.none,
+          side:
+              isGoogle ? const BorderSide(color: Colors.grey) : BorderSide.none,
         ),
       ),
       onPressed: onPressed,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          if (isGoogle) const Icon(Icons.g_translate, color: Colors.black),
+          if (isGoogle) const Icon(FontAwesomeIcons.google),
           if (isGoogle) const SizedBox(width: 10),
           Text(label),
         ],

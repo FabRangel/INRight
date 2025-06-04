@@ -438,4 +438,20 @@ class MedicationConfigProvider extends ChangeNotifier {
       await loadMedicationConfig();
     }
   }
+
+  //Metodo para guardar la frecuencia de INR
+  Future<void> saveFrecuenciaInr() async {
+    if (_auth.currentUser == null) return;
+    _isLoading = true;
+    notifyListeners();
+    try {
+      await _medicationService.saveFrecuenciaInr(_frecuenciaInr);
+    } catch (e) {
+      print("Error guardando frecuencia de INR: $e");
+      throw e;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 }
