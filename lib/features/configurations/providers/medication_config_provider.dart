@@ -76,6 +76,9 @@ class MedicationConfigProvider extends ChangeNotifier {
 
   int get frecuenciaInr => _frecuenciaInr;
 
+  bool _configCargada = false;
+  bool get configCargada => _configCargada;
+
   void setFrecuenciaInr(int dias) {
     _frecuenciaInr = dias;
     notifyListeners();
@@ -96,13 +99,7 @@ class MedicationConfigProvider extends ChangeNotifier {
     "Edoxabán",
   ];
 
-  List<MedicationSchema> _esquemas = [
-    MedicationSchema(
-      dosis: 5.0,
-      dias: ["lunes", "miércoles", "viernes"],
-      hora: "09:00",
-    ),
-  ];
+  List<MedicationSchema> _esquemas = [];
 
   void setFechaInicioEsquema(DateTime fecha) {
     _fechaInicioEsquema = fecha;
@@ -399,6 +396,14 @@ class MedicationConfigProvider extends ChangeNotifier {
   }
 
   Future<void> loadMedicationConfig() async {
+    final config = await getAllConfigData();
+
+    if (config == null) {
+      _configCargada = false;
+      return;
+    }
+
+    _configCargada = true;
     if (_auth.currentUser == null) {
       return;
     }

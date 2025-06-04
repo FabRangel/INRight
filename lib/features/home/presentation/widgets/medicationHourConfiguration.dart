@@ -151,125 +151,135 @@ class _MedicationCardState extends State<MedicationCard> {
   }
 
   Widget _buildEditableView(double dosis, List<String> dias, String hora) {
-    return Column(
-      children: [
-        const SizedBox(height: 8),
-        Row(
+    return Expanded(
+      child: SingleChildScrollView(
+        child: Column(
           children: [
-            IconButton(
-              icon: const Icon(
-                Icons.remove_circle_outline,
-                color: Color.fromARGB(255, 255, 255, 255),
-                size: 35,
-              ),
-              onPressed:
-                  () => widget.onCambiarDosis(
-                    widget.index,
-                    (dosis - 0.25).clamp(0.0, 100.0),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.remove_circle_outline,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                    size: 35,
                   ),
-            ),
-            Expanded(
-              child: Center(
-                child: Text(
-                  "${dosis.toStringAsFixed(2)} mg",
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  onPressed:
+                      () => widget.onCambiarDosis(
+                        widget.index,
+                        (dosis - 0.25).clamp(0.0, 100.0),
+                      ),
+                ),
+                Expanded(
+                  child: Center(
+                    child: Text(
+                      "${dosis.toStringAsFixed(2)} mg",
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
-              ),
-            ),
-            IconButton(
-              icon: const Icon(
-                Icons.add_circle_outline,
-                color: Color.fromARGB(255, 255, 255, 255),
-                size: 35,
-              ),
-              onPressed:
-                  () => widget.onCambiarDosis(
-                    widget.index,
-                    (dosis + 0.25).clamp(0.0, 100.0),
+                IconButton(
+                  icon: const Icon(
+                    Icons.add_circle_outline,
+                    color: Color.fromARGB(255, 255, 255, 255),
+                    size: 35,
                   ),
+                  onPressed:
+                      () => widget.onCambiarDosis(
+                        widget.index,
+                        (dosis + 0.25).clamp(0.0, 100.0),
+                      ),
+                ),
+              ],
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(7, (i) {
-            final diaClave = claves[i];
-            final activo = dias.contains(diaClave);
+            const SizedBox(height: 16),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 6,
+              runSpacing: 6,
+              children: List.generate(7, (i) {
+                final diaClave = claves[i];
+                final activo = dias.contains(diaClave);
 
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4.0),
-              child: GestureDetector(
-                onTap: () => widget.onToggleDia(widget.index, diaClave),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: activo ? Colors.green : Colors.grey.shade300,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Text(
-                    abreviaturas[i],
-                    style: TextStyle(
-                      color: activo ? Colors.white : Colors.black,
-                      fontWeight: FontWeight.bold,
+                return GestureDetector(
+                  onTap: () => widget.onToggleDia(widget.index, diaClave),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    width: 25,
+                    height: 25,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: activo ? Colors.green : Colors.grey.shade300,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Text(
+                      abreviaturas[i],
+                      style: TextStyle(
+                        color: activo ? Colors.white : Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-              ),
-            );
-          }),
-        ),
-        const SizedBox(height: 16),
-        GestureDetector(
-          onTap: () async {
-            final picked = await showTimePicker(
-              context: context,
-              initialTime: TimeOfDay(
-                hour: int.parse(hora.split(":")[0]),
-                minute: int.parse(hora.split(":")[1]),
-              ),
-            );
-            if (picked != null) {
-              widget.onCambiarHora(
-                widget.index,
-                "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}",
-              );
-            }
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
+                );
+              }),
+            ),
+
+            const SizedBox(height: 16),
+            GestureDetector(
+              onTap: () async {
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: TimeOfDay(
+                    hour: int.parse(hora.split(":")[0]),
+                    minute: int.parse(hora.split(":")[1]),
+                  ),
+                );
+                if (picked != null) {
+                  widget.onCambiarHora(
+                    widget.index,
+                    "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}",
+                  );
+                }
+              },
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Icon(Icons.access_time, size: 22, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Text(
-                    hora,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time,
+                        size: 22,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        hora,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.cancel_outlined,
+                      color: Colors.red,
+                      size: 30,
                     ),
+                    onPressed: () => widget.onEliminar(widget.index),
                   ),
                 ],
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.cancel_outlined,
-                  color: Colors.red,
-                  size: 30,
-                ),
-                onPressed: () => widget.onEliminar(widget.index),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }

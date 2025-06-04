@@ -189,9 +189,13 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
       if (!provider.dosisSincronizadas) {
         final firestoreDoses = await DosisService().getDosesHistory();
 
-        provider
-          ..generarDosisSegunEsquema(silent: true)
-          ..marcarFaltas();
+        if (provider.configCargada &&
+            provider.esquemas.isNotEmpty &&
+            provider.fechaInicioEsquema != null) {
+          provider
+            ..generarDosisSegunEsquema(silent: true)
+            ..marcarFaltas();
+        }
 
         for (var local in provider.dosisGeneradas) {
           final fechaStr =
@@ -518,77 +522,80 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
               ],
             ),
             const SizedBox(height: 16),
-            ElevatedButton.icon(
-              onPressed: () async {
-                if (dosisHoy.tomada) {
-                  setState(() {
-                    dosisHoy
-                      ..tomada = false
-                      ..horaToma = null
-                      ..estado = 'pendiente';
-                  });
-                  _showSnack(
-                    'Toma cancelada',
-                    'Has desconfirmado tu dosis.',
-                    ContentType.warning,
-                  );
-                } else {
-                  provider.confirmarTomaDelDia();
-                  dosisHoy
-                    ..tomada = true
-                    ..horaToma = DateTime.now()
-                    ..estado = 'ok';
-                  await DosisService().saveDoses(
-                    dosis: dosisHoy.dosis,
-                    hora: dosisHoy.hora,
-                    medicamento: provider.anticoagulante,
-                    estado: dosisHoy.estado,
-                    fecha: dosisHoy.fecha,
-                  );
-                  _showDelayedNotification();
-                  if (!hasNotified) {
-                    _showDelayedNotification();
-                    hasNotified = true;
-                  }
-                  setState(() {
-                    final siguiente = _buscarSiguienteDosis(
-                      provider,
-                      DateTime.now(),
+            Visibility(
+              visible: dosisHoy.hora != '00:00',
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  if (dosisHoy.tomada) {
+                    setState(() {
+                      dosisHoy
+                        ..tomada = false
+                        ..horaToma = null
+                        ..estado = 'pendiente';
+                    });
+                    _showSnack(
+                      'Toma cancelada',
+                      'Has desconfirmado tu dosis.',
+                      ContentType.warning,
                     );
-                    if (siguiente != null) {
-                      final diff = siguiente.difference(DateTime.now());
-                      message =
-                          'Faltan ${diff.inHours}h ${diff.inMinutes % 60}m para tu próxima dosis';
+                  } else {
+                    provider.confirmarTomaDelDia();
+                    dosisHoy
+                      ..tomada = true
+                      ..horaToma = DateTime.now()
+                      ..estado = 'ok';
+                    await DosisService().saveDoses(
+                      dosis: dosisHoy.dosis,
+                      hora: dosisHoy.hora,
+                      medicamento: provider.anticoagulante,
+                      estado: dosisHoy.estado,
+                      fecha: dosisHoy.fecha,
+                    );
+                    _showDelayedNotification();
+                    if (!hasNotified) {
+                      _showDelayedNotification();
+                      hasNotified = true;
                     }
-                  });
-                  _showSnack(
-                    '¡Toma registrada!',
-                    'Has confirmado tu dosis correctamente.',
-                    ContentType.success,
-                  );
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    dosisHoy.tomada
-                        ? const Color.fromARGB(255, 160, 157, 157)
-                        : Colors.green,
-                foregroundColor: Colors.white,
-                minimumSize: const Size.fromHeight(48),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+                    setState(() {
+                      final siguiente = _buscarSiguienteDosis(
+                        provider,
+                        DateTime.now(),
+                      );
+                      if (siguiente != null) {
+                        final diff = siguiente.difference(DateTime.now());
+                        message =
+                            'Faltan ${diff.inHours}h ${diff.inMinutes % 60}m para tu próxima dosis';
+                      }
+                    });
+                    _showSnack(
+                      '¡Toma registrada!',
+                      'Has confirmado tu dosis correctamente.',
+                      ContentType.success,
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor:
+                      dosisHoy.tomada
+                          ? const Color.fromARGB(255, 160, 157, 157)
+                          : Colors.green,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size.fromHeight(48),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30),
+                  ),
                 ),
-              ),
-              icon: Icon(
-                dosisHoy.tomada ? Icons.cancel : Icons.check_circle,
-                size: 24,
-                color: Colors.white,
-              ),
-              label: Text(
-                dosisHoy.tomada ? 'Cancelar toma' : 'Confirmar toma',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+                icon: Icon(
+                  dosisHoy.tomada ? Icons.cancel : Icons.check_circle,
+                  size: 24,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  dosisHoy.tomada ? 'Cancelar toma' : 'Confirmar toma',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -731,6 +738,10 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
     String doseTimeStr,
     MedicationConfigProvider provider,
   ) {
+    if (doseTimeStr == '00:00' || doseTimeStr.trim().isEmpty) {
+      return 'Aún no tienes dosis programadas';
+    }
+
     final now = DateTime.now();
 
     final dosisHoy = provider.dosisGeneradas.firstWhere(
