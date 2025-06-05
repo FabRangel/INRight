@@ -1,67 +1,113 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:inright/services/configurations/notification_config.service.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:inright/services/notifications/notification_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class NotificationConfigProvider with ChangeNotifier {
-  // Singleton pattern para la service
-  final _notificationService = NotificationConfigService();
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  String? _currentUserId;
+  final NotificationConfigService _notificationConfigService =
+      NotificationConfigService();
 
   bool _alertaInr = true;
   bool _recordatorioMed = true;
   bool _valoresCriticos = true;
   bool _push = true;
   bool _email = false;
+  String _horaNotificacion = "08:00";
   bool _sonido = true;
   bool _vibracion = true;
-  String _horaNotificacion = "08:00";
   bool _isLoading = false;
+  String _userEmail = '';
 
-  // Getters
   bool get alertaInr => _alertaInr;
   bool get recordatorioMed => _recordatorioMed;
   bool get valoresCriticos => _valoresCriticos;
   bool get push => _push;
   bool get email => _email;
+  String get horaNotificacion => _horaNotificacion;
   bool get sonido => _sonido;
   bool get vibracion => _vibracion;
-  String get horaNotificacion => _horaNotificacion;
   bool get isLoading => _isLoading;
+  String get userEmail => _userEmail;
 
   NotificationConfigProvider() {
-    // Escuchar cambios en la autenticación
-    _auth.authStateChanges().listen((User? user) {
-      if (user != null && user.uid != _currentUserId) {
-        _currentUserId = user.uid;
-        loadNotificationConfig();
-      } else if (user == null) {
-        _currentUserId = null;
-        _resetToDefaults();
-      }
-    });
+    loadNotificationConfig();
+  }
 
-    // Cargar la configuración inicial si ya hay usuario autenticado
-    final currentUser = _auth.currentUser;
-    if (currentUser != null) {
-      _currentUserId = currentUser.uid;
-      loadNotificationConfig();
+  // Método para forzar una recarga de las configuraciones
+  void forceRefresh() {
+    loadNotificationConfig();
+  }
+
+  Future<void> loadNotificationConfig() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final config = await _notificationConfigService.getNotificationConfig();
+      // Corregir acceso a un mapa potencialmente nulo usando el operador ?.
+      _alertaInr = config?['alertaInr'] ?? true;
+      _recordatorioMed = config?['recordatorioMed'] ?? true;
+      _valoresCriticos = config?['valoresCriticos'] ?? true;
+      _push = config?['push'] ?? true;
+      _email = config?['email'] ?? false;
+      _horaNotificacion = config?['horaNotificacion'] ?? "08:00";
+      _sonido = config?['sonido'] ?? true;
+      _vibracion = config?['vibracion'] ?? true;
+      _userEmail = config?['userEmail'] ?? '';
+
+      // Guardar la configuración en SharedPreferences para que la use el NotificationService
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('alertaInr', _alertaInr);
+      await prefs.setBool('recordatorioMed', _recordatorioMed);
+      await prefs.setBool('valoresCriticos', _valoresCriticos);
+      await prefs.setBool('push', _push);
+      await prefs.setBool('email', _email);
+      await prefs.setBool('sonido', _sonido);
+      await prefs.setBool('vibracion', _vibracion);
+    } catch (e) {
+      debugPrint('Error al cargar configuración de notificaciones: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 
-  void _resetToDefaults() {
-    _alertaInr = true;
-    _recordatorioMed = true;
-    _valoresCriticos = true;
-    _push = true;
-    _email = false;
-    _sonido = true;
-    _vibracion = true;
-    _horaNotificacion = "08:00";
+  Future<void> saveNotificationConfig() async {
+    _isLoading = true;
     notifyListeners();
+
+    try {
+      await _notificationConfigService.saveNotificationConfig({
+        'alertaInr': _alertaInr,
+        'recordatorioMed': _recordatorioMed,
+        'valoresCriticos': _valoresCriticos,
+        'push': _push,
+        'email': _email,
+        'horaNotificacion': _horaNotificacion,
+        'sonido': _sonido,
+        'vibracion': _vibracion,
+        'userEmail': _userEmail,
+      });
+
+      // Actualizar SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('alertaInr', _alertaInr);
+      await prefs.setBool('recordatorioMed', _recordatorioMed);
+      await prefs.setBool('valoresCriticos', _valoresCriticos);
+      await prefs.setBool('push', _push);
+      await prefs.setBool('email', _email);
+      await prefs.setBool('sonido', _sonido);
+      await prefs.setBool('vibracion', _vibracion);
+    } catch (e) {
+      debugPrint('Error al guardar configuración de notificaciones: $e');
+      rethrow;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  // Setters with notifications
   void setAlertaInr(bool value) {
     _alertaInr = value;
     notifyListeners();
@@ -87,6 +133,11 @@ class NotificationConfigProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setHoraNotificacion(String value) {
+    _horaNotificacion = value;
+    notifyListeners();
+  }
+
   void setSonido(bool value) {
     _sonido = value;
     notifyListeners();
@@ -97,70 +148,16 @@ class NotificationConfigProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void setHoraNotificacion(String value) {
-    _horaNotificacion = value;
+  void setUserEmail(String email) {
+    _userEmail = email;
     notifyListeners();
   }
 
-  Map<String, dynamic> getAllNotificationData() {
-    return {
-      'alertaINR': _alertaInr,
-      'recordatorioMed': _recordatorioMed,
-      'valoresCriticos': _valoresCriticos,
-      'notificacionesPush': _push,
-      'correoElectronico': _email,
-      'sonido': _sonido,
-      'vibracion': _vibracion,
-      'horaNotificacion': _horaNotificacion,
-    };
-  }
-
-  Future<void> saveNotificationConfig() async {
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      await _notificationService.saveNotificationConfig(
-        getAllNotificationData(),
-      );
-    } catch (e) {
-      print("Error guardando configuración de notificaciones: $e");
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> loadNotificationConfig() async {
-    if (_auth.currentUser == null) return;
-
-    _isLoading = true;
-    notifyListeners();
-
-    try {
-      final config = await _notificationService.getNotificationConfig();
-
-      if (config != null) {
-        _alertaInr = config['alertaINR'] ?? true;
-        _recordatorioMed = config['recordatorioMed'] ?? true;
-        _valoresCriticos = config['valoresCriticos'] ?? true;
-        _push = config['notificacionesPush'] ?? true;
-        _email = config['correoElectronico'] ?? false;
-        _sonido = config['sonido'] ?? true;
-        _vibracion = config['vibracion'] ?? true;
-        _horaNotificacion = config['horaNotificacion'] ?? "08:00";
-      }
-    } catch (e) {
-      print("🔥 Error cargando configuración de notificaciones: $e");
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-
-  Future<void> forceRefresh() async {
-    if (_auth.currentUser != null && _currentUserId == _auth.currentUser!.uid) {
-      await loadNotificationConfig();
-    }
+  // Método para probar notificaciones según tipo
+  Future<void> testNotification(
+    BuildContext context,
+    NotificationType type,
+  ) async {
+    await NotificationService.testNotification(context, _userEmail, type);
   }
 }

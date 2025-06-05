@@ -93,6 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         listen: false,
       );
+      if (!mounted) return;
       notificationProvider.forceRefresh();
 
       final medicationProvider = Provider.of<MedicationConfigProvider>(

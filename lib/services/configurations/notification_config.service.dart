@@ -1,9 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 
 class NotificationConfigService {
-  final _firestore = FirebaseFirestore.instance;
-  final _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   // Singleton pattern
   static final NotificationConfigService _instance =
@@ -11,60 +12,47 @@ class NotificationConfigService {
   factory NotificationConfigService() => _instance;
   NotificationConfigService._internal();
 
-  Future<void> saveNotificationConfig(Map<String, dynamic> data) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        print("ERROR: Usuario no autenticado");
-        return;
-      }
-
-      await _firestore
-          .collection('personas')
-          .doc(user.uid)
-          .collection('configs')
-          .doc('notifications')
-          .set({
-            'alertaINR': data['alertaINR'],
-            'recordatorioMed': data['recordatorioMed'],
-            'valoresCriticos': data['valoresCriticos'],
-            'notificacionesPush': data['notificacionesPush'],
-            'correoElectronico': data['correoElectronico'],
-            'sonido': data['sonido'],
-            'vibracion': data['vibracion'],
-            'horaNotificacion': data['horaNotificacion'],
-            'updatedAt': FieldValue.serverTimestamp(),
-          }, SetOptions(merge: true));
-    } catch (e) {
-      print("🔥 ERROR al guardar configuración de notificaciones: $e");
-      throw e;
-    }
-  }
-
+  // Obtener la configuración de notificaciones actual del usuario
   Future<Map<String, dynamic>?> getNotificationConfig() async {
     try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        print("ERROR: Usuario no autenticado");
-        return null;
-      }
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) return null;
 
-      final doc =
+      final docSnapshot =
           await _firestore
-              .collection('personas')
-              .doc(user.uid)
-              .collection('configs')
+              .collection('users')
+              .doc(userId)
+              .collection('settings')
               .doc('notifications')
               .get();
 
-      if (!doc.exists) {
-        return null;
+      // Si el documento no existe, retornar un mapa vacío en lugar de null
+      if (!docSnapshot.exists) {
+        return {};
       }
 
-      return doc.data();
+      return docSnapshot.data();
     } catch (e) {
-      print("🔥 ERROR al obtener configuración de notificaciones: $e");
+      debugPrint('Error al obtener configuración de notificaciones: $e');
       return null;
+    }
+  }
+
+  // Guardar la configuración de notificaciones del usuario
+  Future<void> saveNotificationConfig(Map<String, dynamic> config) async {
+    try {
+      final userId = _auth.currentUser?.uid;
+      if (userId == null) throw Exception('Usuario no autenticado');
+
+      await _firestore
+          .collection('users')
+          .doc(userId)
+          .collection('settings')
+          .doc('notifications')
+          .set(config, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint('Error al guardar configuración de notificaciones: $e');
+      throw Exception('No se pudieron guardar las configuraciones: $e');
     }
   }
 }

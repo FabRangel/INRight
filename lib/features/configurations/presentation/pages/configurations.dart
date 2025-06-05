@@ -12,6 +12,9 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:inright/services/home/user.service.dart';
 import 'package:inright/features/home/providers/user_provider.dart';
+import 'package:inright/services/notifications/notification_service.dart'; // Importación añadida
+import 'package:audioplayers/audioplayers.dart'; // Para reproducir sonidos
+import 'package:vibration/vibration.dart'; // Para la vibración
 
 class Configurations extends StatefulWidget {
   const Configurations({super.key});
@@ -877,6 +880,21 @@ class _ConfigurationsState extends State<Configurations> {
                         notificationProvider.alertaInr,
                         (val) {
                           notificationProvider.setAlertaInr(val);
+                          if (val) {
+                            // Si se activa, mostrar ejemplo de notificación
+                            notificationProvider.testNotification(
+                              context,
+                              NotificationType.inr,
+                            );
+
+                            _showTopSnackBar(
+                              context,
+                              "Alertas de INR activadas",
+                              "Recibirás notificaciones cuando tus valores de INR estén fuera del rango configurado",
+                              ContentType.success,
+                              Colors.green,
+                            );
+                          }
                         },
                       ),
                       _buildSwitch(
@@ -885,6 +903,21 @@ class _ConfigurationsState extends State<Configurations> {
                         notificationProvider.recordatorioMed,
                         (val) {
                           notificationProvider.setRecordatorioMed(val);
+                          if (val) {
+                            // Si se activa, mostrar ejemplo de notificación
+                            notificationProvider.testNotification(
+                              context,
+                              NotificationType.medicationReminder,
+                            );
+
+                            _showTopSnackBar(
+                              context,
+                              "Recordatorios de medicación activados",
+                              "Recibirás avisos para tomar tu medicación según el horario establecido",
+                              ContentType.success,
+                              Colors.green,
+                            );
+                          }
                         },
                       ),
                       _buildSwitch(
@@ -893,6 +926,21 @@ class _ConfigurationsState extends State<Configurations> {
                         notificationProvider.valoresCriticos,
                         (val) {
                           notificationProvider.setValoresCriticos(val);
+                          if (val) {
+                            // Si se activa, mostrar ejemplo de notificación
+                            notificationProvider.testNotification(
+                              context,
+                              NotificationType.criticalValue,
+                            );
+
+                            _showTopSnackBar(
+                              context,
+                              "Alertas de valores críticos activadas",
+                              "Recibirás notificaciones urgentes cuando tus valores sean potencialmente peligrosos",
+                              ContentType.success,
+                              Colors.green,
+                            );
+                          }
                         },
                       ),
                     ],
@@ -907,6 +955,22 @@ class _ConfigurationsState extends State<Configurations> {
                         notificationProvider.push,
                         (val) {
                           notificationProvider.setPush(val);
+                          if (val) {
+                            NotificationService.initialize().then((_) {
+                              NotificationService.sendPushNotification(
+                                "Notificaciones push activadas",
+                                "Ahora recibirás notificaciones en tu dispositivo",
+                              );
+
+                              _showTopSnackBar(
+                                context,
+                                "Notificaciones push activadas",
+                                "Ahora recibirás alertas directamente en tu dispositivo",
+                                ContentType.success,
+                                Colors.green,
+                              );
+                            });
+                          }
                         },
                       ),
                       _buildSwitch(
@@ -915,6 +979,13 @@ class _ConfigurationsState extends State<Configurations> {
                         notificationProvider.email,
                         (val) {
                           notificationProvider.setEmail(val);
+                          if (val) {
+                            // Mostrar diálogo para confirmar o actualizar el correo
+                            _showEmailConfigDialog(
+                              context,
+                              notificationProvider,
+                            );
+                          }
                         },
                       ),
                     ],
@@ -971,6 +1042,23 @@ class _ConfigurationsState extends State<Configurations> {
                         notificationProvider.sonido,
                         (val) {
                           notificationProvider.setSonido(val);
+                          if (val) {
+                            // Reproducir sonido de ejemplo
+                            NotificationService.initialize().then((_) {
+                              final audioPlayer = AudioPlayer();
+                              audioPlayer.play(
+                                AssetSource('sounds/notification.mp3'),
+                              );
+
+                              _showTopSnackBar(
+                                context,
+                                "Sonido activado",
+                                "Las notificaciones ahora incluirán sonido",
+                                ContentType.success,
+                                Colors.green,
+                              );
+                            });
+                          }
                         },
                       ),
                       _buildSwitch(
@@ -979,6 +1067,22 @@ class _ConfigurationsState extends State<Configurations> {
                         notificationProvider.vibracion,
                         (val) {
                           notificationProvider.setVibracion(val);
+                          if (val) {
+                            // Activar vibración de ejemplo
+                            Vibration.hasVibrator().then((hasVibrator) {
+                              if (hasVibrator ?? false) {
+                                Vibration.vibrate(duration: 300);
+
+                                _showTopSnackBar(
+                                  context,
+                                  "Vibración activada",
+                                  "Las notificaciones ahora incluirán vibración",
+                                  ContentType.success,
+                                  Colors.green,
+                                );
+                              }
+                            });
+                          }
                         },
                       ),
                     ],
@@ -1146,6 +1250,79 @@ class _ConfigurationsState extends State<Configurations> {
           ),
         ],
       ),
+    );
+  }
+
+  // Método para mostrar el diálogo de configuración de email
+  void _showEmailConfigDialog(
+    BuildContext context,
+    NotificationConfigProvider provider,
+  ) {
+    final TextEditingController emailController = TextEditingController(
+      text: provider.userEmail,
+    );
+
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text("Configurar correo electrónico"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  "Por favor confirma o actualiza tu dirección de correo electrónico para recibir alertas:",
+                  style: TextStyle(fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: emailController,
+                  decoration: const InputDecoration(
+                    labelText: "Correo electrónico",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  provider.setEmail(false);
+                  Navigator.of(context).pop();
+                },
+                child: const Text("Cancelar"),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  final email = emailController.text.trim();
+                  if (email.isNotEmpty) {
+                    provider.setUserEmail(email);
+
+                    NotificationService.sendEmailNotification(
+                      "Notificaciones por correo activadas",
+                      "Has activado las notificaciones por correo en la app INRight. Recibirás alertas importantes en esta dirección.",
+                      email,
+                    );
+
+                    _showTopSnackBar(
+                      context,
+                      "Correo configurado",
+                      "Ahora recibirás alertas en $email",
+                      ContentType.success,
+                      Colors.green,
+                    );
+
+                    Navigator.of(context).pop();
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color.fromARGB(255, 114, 193, 224),
+                ),
+                child: const Text("Guardar"),
+              ),
+            ],
+          ),
     );
   }
 }

@@ -16,7 +16,7 @@ dependencies:
   cloud_firestore: ^5.6.8
   firebase_auth: ^5.5.4
   firebase_storage: ^12.4.6
-  flutter_local_notifications: ^17.1.0
+  flutter_local_notifications: ^13.0.0
   awesome_snackbar_content: ^0.1.5
   image_picker: ^1.0.4
   provider: ^6.0.5
@@ -24,6 +24,9 @@ dependencies:
   google_sign_in: ^6.2.1
   font_awesome_flutter: ^10.1.0
   flutter_launcher_icons: ^0.13.1
+  flutter_email_sender: ^6.0.0
+  vibration: ^1.7.7
+  audioplayers: ^4.0.1
 
 dev_dependencies:
   flutter_test:
