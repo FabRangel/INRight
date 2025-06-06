@@ -136,14 +136,21 @@ class NotificationService {
     try {
       // Get medication config provider to check dose status
       final medicationProvider = await _getMedicationStatus();
+      String title = 'Recordatorio de medicación';
+      String body = 'Es hora de revisar tu medicación diaria.';
+      String message = '';
+      bool isLate = false;
+      DateTime? nextDose;
+      DateTime? doseTime;
 
       if (medicationProvider == null) {
-        return showNotification(
-          title: 'Recordatorio de medicación',
-          body: 'Es hora de revisar tu medicación diaria.',
+        await showNotification(
+          title: title,
+          body: body,
           channelId: 'medication_reminders',
           channelName: 'Medication Reminders',
         );
+        return;
       }
 
       // Check current dose status
@@ -157,78 +164,82 @@ class NotificationService {
 
       if (dosisHoy.hora == '00:00' || dosisHoy.hora.isEmpty) {
         // No dose scheduled for today
-        return showNotification(
-          title: 'Recordatorio de medicación',
-          body: 'No tienes dosis programadas para hoy.',
-          channelId: 'medication_reminders',
-          channelName: 'Medication Reminders',
-        );
-      }
-
-      if (dosisHoy.tomada) {
+        title = 'Recordatorio de medicación';
+        body = 'No tienes dosis programadas para hoy.';
+      } else if (dosisHoy.tomada) {
         // Dose already taken, check next dose
-        final nextDose = _findNextDose(medicationProvider, now);
+        nextDose = _findNextDose(medicationProvider, now);
         if (nextDose == null) {
-          return showNotification(
-            title: 'Dosis tomada correctamente',
-            body: 'Has tomado tu dosis de hoy. No hay más dosis pendientes.',
-            channelId: 'medication_reminders',
-            channelName: 'Medication Reminders',
-          );
-        }
-
-        final diff = nextDose.difference(now);
-        final hours = diff.inHours;
-        final minutes = diff.inMinutes % 60;
-
-        return showNotification(
-          title: 'Próxima dosis',
-          body:
-              'Faltan ${hours}h ${minutes}m para tu próxima dosis de ${medicationProvider.anticoagulante}.',
-          channelId: 'medication_reminders',
-          channelName: 'Medication Reminders',
-        );
-      } else {
-        // Dose not taken
-        final doseTimeParts = dosisHoy.hora.split(':');
-        if (doseTimeParts.length != 2) return;
-
-        final doseTime = DateTime(
-          now.year,
-          now.month,
-          now.day,
-          int.parse(doseTimeParts[0]),
-          int.parse(doseTimeParts[1]),
-        );
-
-        if (doseTime.isAfter(now)) {
-          // Dose is scheduled for later today
-          final diff = doseTime.difference(now);
+          title = 'Dosis tomada correctamente';
+          body = 'Has tomado tu dosis de hoy. No hay más dosis pendientes.';
+        } else {
+          final diff = nextDose.difference(now);
           final hours = diff.inHours;
           final minutes = diff.inMinutes % 60;
 
-          return showNotification(
-            title: 'Recordatorio de medicación',
-            body:
-                'Faltan ${hours}h ${minutes}m para tu dosis de ${medicationProvider.anticoagulante}.',
-            channelId: 'medication_reminders',
-            channelName: 'Medication Reminders',
-          );
-        } else {
-          // User is late for their dose
-          final delay = now.difference(doseTime);
-          final hours = delay.inHours;
-          final minutes = delay.inMinutes % 60;
+          title = 'Próxima dosis';
+          body =
+              'Faltan ${hours}h ${minutes}m para tu próxima dosis de ${medicationProvider.anticoagulante}.';
+        }
 
-          return showNotification(
-            title: '¡Dosis retrasada!',
-            body:
-                'Te retrasaste ${hours}h ${minutes}m en tomar tu dosis de ${medicationProvider.anticoagulante}.',
-            channelId: 'medication_reminders',
-            channelName: 'Medication Reminders',
+        message = 'Has tomado tu dosis de hoy correctamente.\n\n';
+        if (nextDose != null) {
+          final diff = nextDose.difference(now);
+          final hours = diff.inHours;
+          final minutes = diff.inMinutes % 60;
+          message +=
+              'Tu próxima dosis está programada en ${hours}h ${minutes}m.';
+        } else {
+          message += 'No tienes más dosis programadas por ahora.';
+        }
+      } else {
+        // Dose not taken
+        final doseTimeParts = dosisHoy.hora.split(':');
+        if (doseTimeParts.length == 2) {
+          doseTime = DateTime(
+            now.year,
+            now.month,
+            now.day,
+            int.parse(doseTimeParts[0]),
+            int.parse(doseTimeParts[1]),
           );
+
+          if (doseTime.isAfter(now)) {
+            // Dose is scheduled for later today
+            final diff = doseTime.difference(now);
+            final hours = diff.inHours;
+            final minutes = diff.inMinutes % 60;
+
+            title = 'Recordatorio de medicación';
+            body =
+                'Faltan ${hours}h ${minutes}m para tu dosis de ${medicationProvider.anticoagulante}.';
+
+            message =
+                'Te recordamos que tienes una dosis programada de ${medicationProvider.anticoagulante} en ${hours}h ${minutes}m.\n\nNo olvides registrarla en la aplicación una vez tomada.';
+          } else {
+            // User is late for their dose
+            final delay = now.difference(doseTime);
+            final hours = delay.inHours;
+            final minutes = delay.inMinutes % 60;
+
+            title = '¡Dosis retrasada!';
+            body =
+                'Te retrasaste ${hours}h ${minutes}m en tomar tu dosis de ${medicationProvider.anticoagulante}.';
+
+            message =
+                '¡Alerta! Te has retrasado ${hours}h ${minutes}m en tomar tu dosis de ${medicationProvider.anticoagulante}.\n\nPor favor, tómala lo antes posible y regístrala en la aplicación.';
+            isLate = true;
+          }
         }
       }
+
+      // Show the notification with the determined title and body
+      await showNotification(
+        title: title,
+        body: body,
+        channelId: 'medication_reminders',
+        channelName: 'Medication Reminders',
+      );
 
       // Get required shared preferences for email notifications
       final prefs = await SharedPreferences.getInstance();
@@ -236,37 +247,10 @@ class NotificationService {
       final userEmail = prefs.getString('userEmail') ?? '';
 
       // Check if email notifications are enabled and email is valid
-      if (emailEnabled && userEmail.isNotEmpty && userEmail.contains('@')) {
-        String message;
-        bool isLate = false;
-
-        // Determine the email content based on the medication status
-        if (dosisHoy.tomada) {
-          message = 'Has tomado tu dosis de hoy correctamente.\n\n';
-
-          if (nextDose != null) {
-            final diff = nextDose.difference(now);
-            final hours = diff.inHours;
-            final minutes = diff.inMinutes % 60;
-            message += 'Tu próxima dosis está programada en ${hours}h ${minutes}m.';
-          } else {
-            message += 'No tienes más dosis programadas por ahora.';
-          }
-        } else if (doseTime.isAfter(now)) {
-          final diff = doseTime.difference(now);
-          final hours = diff.inHours;
-          final minutes = diff.inMinutes % 60;
-
-          message = 'Te recordamos que tienes una dosis programada de ${medicationProvider.anticoagulante} en ${hours}h ${minutes}m.\n\nNo olvides registrarla en la aplicación una vez tomada.';
-        } else {
-          final delay = now.difference(doseTime);
-          final hours = delay.inHours;
-          final minutes = delay.inMinutes % 60;
-
-          message = '¡Alerta! Te has retrasado ${hours}h ${minutes}m en tomar tu dosis de ${medicationProvider.anticoagulante}.\n\nPor favor, tómala lo antes posible y regístrala en la aplicación.';
-          isLate = true;
-        }
-
+      if (emailEnabled &&
+          userEmail.isNotEmpty &&
+          userEmail.contains('@') &&
+          message.isNotEmpty) {
         await EmailService.sendMedicationReminderEmail(
           to: userEmail,
           medicationName: medicationProvider.anticoagulante,
@@ -510,10 +494,7 @@ class NotificationService {
         final Uri emailLaunchUri = Uri(
           scheme: 'mailto',
           path: email,
-          query: encodeQueryParameters({
-            'subject': subject,
-            'body': body,
-          }),
+          query: encodeQueryParameters({'subject': subject, 'body': body}),
         );
 
         // Open email client
@@ -531,12 +512,104 @@ class NotificationService {
   // Helper method to encode query parameters
   static String? encodeQueryParameters(Map<String, String> params) {
     return params.entries
-        .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .map(
+          (e) =>
+              '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}',
+        )
         .join('&');
   }
 
   // Update medication reminder schedule when notification settings change
   static Future<void> updateMedicationReminderSettings() async {
     await setupMedicationReminderTimer();
+  }
+
+  // Check INR value and send notifications if outside the target range
+  static Future<void> checkInrValueAndNotify(
+    BuildContext context,
+    String userEmail,
+    double inrValue,
+    double minRange,
+    double maxRange,
+  ) async {
+    // Initialize notification service if not already
+    await initialize();
+
+    // Check if the INR value is outside the target range
+    if (inrValue < minRange || inrValue > maxRange) {
+      // INR is outside the range, send notifications
+
+      // Determine notification message based on severity
+      String title;
+      String body;
+      bool isCritical = false;
+
+      // Check if the value is significantly out of range (±30% from limits)
+      double lowerCritical = minRange - (minRange * 0.3);
+      double upperCritical = maxRange + (maxRange * 0.3);
+
+      if (inrValue <= lowerCritical || inrValue >= upperCritical) {
+        // Critical value - requires immediate attention
+        title = '¡Alerta! Valor de INR crítico';
+        body =
+            'Tu INR es ${inrValue.toStringAsFixed(1)}, muy ${inrValue < minRange ? 'por debajo' : 'por encima'} de tu rango objetivo (${minRange.toStringAsFixed(1)}-${maxRange.toStringAsFixed(1)}). Contacta a tu médico inmediatamente.';
+        isCritical = true;
+      } else {
+        // Value is out of range but not critical
+        title = 'Valor de INR fuera de rango';
+        body =
+            'Tu INR es ${inrValue.toStringAsFixed(1)}, fuera de tu rango objetivo (${minRange.toStringAsFixed(1)}-${maxRange.toStringAsFixed(1)}). Considera consultar a tu médico.';
+      }
+
+      // Send local notification
+      await showNotification(
+        title: title,
+        body: body,
+        channelId: isCritical ? 'critical_values' : 'inr_alerts',
+        channelName: isCritical ? 'Critical Values' : 'INR Alerts',
+        channelDescription:
+            isCritical
+                ? 'Alertas urgentes para valores de INR críticos'
+                : 'Notificaciones para valores de INR fuera de rango',
+      );
+
+      // Check if email notifications are enabled
+      final prefs = await SharedPreferences.getInstance();
+      final emailEnabled = prefs.getBool('email') ?? false;
+
+      // If email notifications are enabled and email is valid, send an email
+      if (emailEnabled && userEmail.isNotEmpty && userEmail.contains('@')) {
+        try {
+          final emailSubject =
+              isCritical
+                  ? '⚠️ ALERTA CRÍTICA: Valor de INR fuera de rango'
+                  : 'Alerta: Valor de INR fuera de rango';
+
+          final emailBody = '''
+${isCritical ? 'ALERTA CRÍTICA DE INR' : 'Alerta de INR'}
+
+Tu INR registrado es: ${inrValue.toStringAsFixed(1)}
+Tu rango objetivo es: ${minRange.toStringAsFixed(1)}-${maxRange.toStringAsFixed(1)}
+
+${isCritical ? '⚠️ Este valor está significativamente fuera de tu rango objetivo y podría indicar un riesgo importante. Por favor contacta a tu médico inmediatamente.' : 'Este valor está fuera de tu rango objetivo. Te recomendamos consultar con tu médico.'}
+
+Fecha y hora: ${DateTime.now().toString().substring(0, 16)}
+
+Este es un mensaje automático de la aplicación INRight.
+Por favor, no responda a este correo.
+
+--
+INRight - Tu asistente de seguimiento para anticoagulación
+''';
+
+          await sendEmailNotification(emailSubject, emailBody, userEmail);
+        } catch (e) {
+          debugPrint('Error al enviar notificación por correo: $e');
+        }
+      }
+    } else {
+      // INR is within range, no notification needed
+      debugPrint('INR value is within target range: $inrValue');
+    }
   }
 }
