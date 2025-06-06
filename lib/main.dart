@@ -20,10 +20,11 @@ import 'firebase_options.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:inright/services/auth/firebaseAuth.service.dart';
 import 'package:inright/features/home/providers/user_provider.dart';
+import 'package:inright/services/notifications/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initializeDateFormatting('es', null); 
+  await initializeDateFormatting('es', null);
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   SharedPreferences prefs = await SharedPreferences.getInstance();
   bool isFirstTime = prefs.getBool('first_time') ?? true;
@@ -46,7 +47,7 @@ void main() async {
     ..generarDosisSegunEsquema(silent: true)
     ..marcarFaltas();
 
-  // Sincronizamos con FireStore para tener las dosis actualizadas desde el inicio
+  // Syncronize with FireStore for the latest doses
   if (authService.isAuthenticated) {
     final firestoreDoses = await DosisService().getDosesHistory();
     for (var local in medicationProvider.dosisGeneradas) {
@@ -66,6 +67,9 @@ void main() async {
       }
     }
   }
+
+  // Initialize notification service and set up medication reminders
+  await NotificationService.initialize();
 
   runApp(
     MultiProvider(

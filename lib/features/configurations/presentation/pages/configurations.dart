@@ -881,12 +881,6 @@ class _ConfigurationsState extends State<Configurations> {
                         (val) {
                           notificationProvider.setAlertaInr(val);
                           if (val) {
-                            // Si se activa, mostrar ejemplo de notificación
-                            notificationProvider.testNotification(
-                              context,
-                              NotificationType.inr,
-                            );
-
                             _showTopSnackBar(
                               context,
                               "Alertas de INR activadas",
@@ -904,39 +898,10 @@ class _ConfigurationsState extends State<Configurations> {
                         (val) {
                           notificationProvider.setRecordatorioMed(val);
                           if (val) {
-                            // Si se activa, mostrar ejemplo de notificación
-                            notificationProvider.testNotification(
-                              context,
-                              NotificationType.medicationReminder,
-                            );
-
                             _showTopSnackBar(
                               context,
                               "Recordatorios de medicación activados",
                               "Recibirás avisos para tomar tu medicación según el horario establecido",
-                              ContentType.success,
-                              Colors.green,
-                            );
-                          }
-                        },
-                      ),
-                      _buildSwitch(
-                        "Valores críticos",
-                        "Alertas inmediatas para valores peligrosos",
-                        notificationProvider.valoresCriticos,
-                        (val) {
-                          notificationProvider.setValoresCriticos(val);
-                          if (val) {
-                            // Si se activa, mostrar ejemplo de notificación
-                            notificationProvider.testNotification(
-                              context,
-                              NotificationType.criticalValue,
-                            );
-
-                            _showTopSnackBar(
-                              context,
-                              "Alertas de valores críticos activadas",
-                              "Recibirás notificaciones urgentes cuando tus valores sean potencialmente peligrosos",
                               ContentType.success,
                               Colors.green,
                             );
@@ -956,20 +921,13 @@ class _ConfigurationsState extends State<Configurations> {
                         (val) {
                           notificationProvider.setPush(val);
                           if (val) {
-                            NotificationService.initialize().then((_) {
-                              NotificationService.sendPushNotification(
-                                "Notificaciones push activadas",
-                                "Ahora recibirás notificaciones en tu dispositivo",
-                              );
-
-                              _showTopSnackBar(
-                                context,
-                                "Notificaciones push activadas",
-                                "Ahora recibirás alertas directamente en tu dispositivo",
-                                ContentType.success,
-                                Colors.green,
-                              );
-                            });
+                            _showTopSnackBar(
+                              context,
+                              "Notificaciones push activadas",
+                              "Ahora recibirás alertas directamente en tu dispositivo",
+                              ContentType.success,
+                              Colors.green,
+                            );
                           }
                         },
                       ),
@@ -1043,21 +1001,13 @@ class _ConfigurationsState extends State<Configurations> {
                         (val) {
                           notificationProvider.setSonido(val);
                           if (val) {
-                            // Reproducir sonido de ejemplo
-                            NotificationService.initialize().then((_) {
-                              final audioPlayer = AudioPlayer();
-                              audioPlayer.play(
-                                AssetSource('sounds/notification.mp3'),
-                              );
-
-                              _showTopSnackBar(
-                                context,
-                                "Sonido activado",
-                                "Las notificaciones ahora incluirán sonido",
-                                ContentType.success,
-                                Colors.green,
-                              );
-                            });
+                            _showTopSnackBar(
+                              context,
+                              "Sonido activado",
+                              "Las notificaciones ahora incluirán sonido",
+                              ContentType.success,
+                              Colors.green,
+                            );
                           }
                         },
                       ),
@@ -1068,20 +1018,13 @@ class _ConfigurationsState extends State<Configurations> {
                         (val) {
                           notificationProvider.setVibracion(val);
                           if (val) {
-                            // Activar vibración de ejemplo
-                            Vibration.hasVibrator().then((hasVibrator) {
-                              if (hasVibrator ?? false) {
-                                Vibration.vibrate(duration: 300);
-
-                                _showTopSnackBar(
-                                  context,
-                                  "Vibración activada",
-                                  "Las notificaciones ahora incluirán vibración",
-                                  ContentType.success,
-                                  Colors.green,
-                                );
-                              }
-                            });
+                            _showTopSnackBar(
+                              context,
+                              "Vibración activada",
+                              "Las notificaciones ahora incluirán vibración",
+                              ContentType.success,
+                              Colors.green,
+                            );
                           }
                         },
                       ),

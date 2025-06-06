@@ -1,35 +1,70 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 class InrService {
   final _firestore = FirebaseFirestore.instance;
   final _auth = FirebaseAuth.instance;
 
-  Future<void> saveInr(double value) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        print("ERROR: Usuario no autenticado");
-        return;
-      }
-
-      final now = DateTime.now();
-
-      await _firestore
-          .collection('personas')
-          .doc(user.uid)
-          .collection('inr_records')
-          .add({
-            'value': value,
-            'date':
-                '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}',
-            'time':
-                '${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}',
-            'createdAt': FieldValue.serverTimestamp(),
-          });
-    } catch (e) {
-      print("🔥 ERROR al guardar INR: $e");
+  // Save a single INR value
+  Future<void> saveInr(double valor) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('Usuario no autenticado');
     }
+
+    // Get current date and time
+    final now = DateTime.now();
+    final dateStr =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final timeStr =
+        "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+
+    // Save to Firestore
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .collection('inr_records')
+        .add({
+          'value': valor,
+          'date': dateStr,
+          'time': timeStr,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+
+    debugPrint("INR value saved: $valor on $dateStr at $timeStr");
+  }
+
+  // Get INR history
+  Future<List<Map<String, dynamic>>> getInrHistory() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('Usuario no autenticado');
+    }
+
+    // Get data from Firestore ordered by timestamp descending (newest first)
+    final snapshot =
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .collection('inr_records')
+            .orderBy('timestamp', descending: true)
+            .get();
+
+    // Convert snapshot to List of Maps
+    final result =
+        snapshot.docs.map((doc) {
+          final data = doc.data();
+          return {
+            'id': doc.id,
+            'value': data['value'] as double?,
+            'date': data['date'] as String?,
+            'time': data['time'] as String?,
+          };
+        }).toList();
+
+    debugPrint("Retrieved ${result.length} INR records");
+    return result;
   }
 
   Future<void> deleteInr(String id) async {
@@ -51,25 +86,5 @@ class InrService {
     } catch (e) {
       print("🔥 ERROR al eliminar INR: $e");
     }
-  }
-
-  Future<List<Map<String, dynamic>>> getInrHistory() async {
-    final user = _auth.currentUser;
-    if (user == null) return [];
-
-    final snapshot =
-        await _firestore
-            .collection('personas')
-            .doc(user.uid)
-            .collection('inr_records')
-            .orderBy('createdAt', descending: true)
-            .limit(10)
-            .get();
-
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
-      data['id'] = doc.id; // agrega el ID del documento
-      return data;
-    }).toList();
   }
 }

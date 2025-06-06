@@ -99,6 +99,11 @@ class NotificationConfigProvider with ChangeNotifier {
       await prefs.setBool('email', _email);
       await prefs.setBool('sonido', _sonido);
       await prefs.setBool('vibracion', _vibracion);
+      await prefs.setString('horaNotificacion', _horaNotificacion);
+      await prefs.setString('userEmail', _userEmail);
+
+      // Update medication reminder schedule based on new settings
+      await NotificationService.updateMedicationReminderSettings();
     } catch (e) {
       debugPrint('Error al guardar configuración de notificaciones: $e');
       rethrow;
@@ -116,6 +121,8 @@ class NotificationConfigProvider with ChangeNotifier {
   void setRecordatorioMed(bool value) {
     _recordatorioMed = value;
     notifyListeners();
+    // Update medication reminder schedule when this setting changes
+    NotificationService.updateMedicationReminderSettings();
   }
 
   void setValoresCriticos(bool value) {
@@ -136,6 +143,8 @@ class NotificationConfigProvider with ChangeNotifier {
   void setHoraNotificacion(String value) {
     _horaNotificacion = value;
     notifyListeners();
+    // Update medication reminder schedule when notification time changes
+    NotificationService.updateMedicationReminderSettings();
   }
 
   void setSonido(bool value) {

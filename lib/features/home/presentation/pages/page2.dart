@@ -4,9 +4,11 @@ import 'package:inright/features/home/presentation/widgets/addInrForm.dart';
 import 'package:inright/features/home/presentation/widgets/trendChart.dart';
 import 'package:inright/features/home/presentation/widgets/historyItem.dart';
 import 'package:inright/features/home/presentation/widgets/animatedHistoryItem.dart';
+import 'package:inright/features/home/providers/user_provider.dart';
 import 'package:inright/services/home/inr.service.dart';
 import 'package:provider/provider.dart';
 import 'package:inright/features/configurations/providers/medication_config_provider.dart';
+import 'package:inright/services/notifications/notification_service.dart'; // Updated import path
 
 /// Clase para compartir datos de INR con otros widgets
 class InrData {
@@ -163,100 +165,108 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
   }
 
   Future<void> _loadInrHistory() async {
-    final data = await InrService().getInrHistory();
+    try {
+      final data = await InrService().getInrHistory();
 
-    // Obtener el provider para el rango de INR configurado
-    final configProvider = Provider.of<MedicationConfigProvider>(
-      context,
-      listen: false,
-    );
-    final inrRange = configProvider.inrRange;
-    final minIdeal = inrRange.start;
-    final maxIdeal = inrRange.end;
+      if (!mounted) return;
 
-    // Calcular valores mínimo, máximo y último
-    double min = double.infinity;
-    double max = double.negativeInfinity;
-    double last = 0.0;
-    String date = '-- ---';
-    String time = '--:--';
-    int currentStreak = 0; // Inicializamos la racha
+      // Obtener el provider para el rango de INR configurado
+      final configProvider = Provider.of<MedicationConfigProvider>(
+        context,
+        listen: false,
+      );
+      final inrRange = configProvider.inrRange;
+      final minIdeal = inrRange.start;
+      final maxIdeal = inrRange.end;
 
-    if (data.isNotEmpty) {
-      // El último valor es el primero del historial (ordenado descendente)
-      last = data[0]['value']?.toDouble() ?? 0.0;
-      final rawDate = data[0]['date'] ?? '-- ---';
-      time = data[0]['time'] ?? '--:--';
+      // Calcular valores mínimo, máximo y último
+      double min = double.infinity;
+      double max = double.negativeInfinity;
+      double last = 0.0;
+      String date = '-- ---';
+      String time = '--:--';
+      int currentStreak = 0; // Inicializamos la racha
 
-      // Format date to "day month" format
-      try {
-        if (rawDate.contains('-')) {
-          final parts = rawDate.split('-');
-          if (parts.length == 3) {
-            final DateTime dateObj = DateTime(
-              int.parse(parts[0]), // year
-              int.parse(parts[1]), // month
-              int.parse(parts[2]), // day
-            );
+      if (data.isNotEmpty) {
+        // El último valor es el primero del historial (ordenado descendente)
+        last = data[0]['value']?.toDouble() ?? 0.0;
+        final rawDate = data[0]['date'] ?? '-- ---';
+        time = data[0]['time'] ?? '--:--';
 
-            // Format as "day month" using the Spanish month names
-            final months = [
-              'Ene',
-              'Feb',
-              'Mar',
-              'Abr',
-              'May',
-              'Jun',
-              'Jul',
-              'Ago',
-              'Sep',
-              'Oct',
-              'Nov',
-              'Dic',
-            ];
-            date = "${dateObj.day} ${months[dateObj.month - 1]}";
+        // Format date to "day month" format
+        try {
+          if (rawDate.contains('-')) {
+            final parts = rawDate.split('-');
+            if (parts.length == 3) {
+              final DateTime dateObj = DateTime(
+                int.parse(parts[0]), // year
+                int.parse(parts[1]), // month
+                int.parse(parts[2]), // day
+              );
+
+              // Format as "day month" using the Spanish month names
+              final months = [
+                'Ene',
+                'Feb',
+                'Mar',
+                'Abr',
+                'May',
+                'Jun',
+                'Jul',
+                'Ago',
+                'Sep',
+                'Oct',
+                'Nov',
+                'Dic',
+              ];
+              date = "${dateObj.day} ${months[dateObj.month - 1]}";
+            }
+          }
+        } catch (e) {
+          debugPrint("Error formatting date: $e");
+          // Keep the original date value if there's an error
+        }
+
+        // Buscar mínimo y máximo
+        for (var item in data) {
+          final value = item['value']?.toDouble() ?? 0.0;
+          if (value < min) min = value;
+          if (value > max) max = value;
+        }
+
+        // Calcular la racha de valores consecutivos dentro del rango
+        for (var item in data) {
+          final value = item['value']?.toDouble() ?? 0.0;
+          final isInRange = value >= minIdeal && value <= maxIdeal;
+
+          if (isInRange) {
+            // Incrementar racha si está en rango
+            currentStreak++;
+          } else {
+            // Romper la racha al encontrar un valor fuera de rango
+            break;
           }
         }
-      } catch (e) {
-        print("Error formatting date: $e");
-        // Keep the original date value if there's an error
       }
 
-      // Buscar mínimo y máximo
-      for (var item in data) {
-        final value = item['value']?.toDouble() ?? 0.0;
-        if (value < min) min = value;
-        if (value > max) max = value;
-      }
+      // Si no hay datos, establecer valores predeterminados
+      if (min == double.infinity) min = 0.0;
+      if (max == double.negativeInfinity) max = 0.0;
 
-      // Calcular la racha de valores consecutivos dentro del rango
-      for (var item in data) {
-        final value = item['value']?.toDouble() ?? 0.0;
-        final isInRange = value >= minIdeal && value <= maxIdeal;
-
-        if (isInRange) {
-          // Incrementar racha si está en rango
-          currentStreak++;
-        } else {
-          // Romper la racha al encontrar un valor fuera de rango
-          break;
-        }
+      if (mounted) {
+        setState(() {
+          historyData = data;
+          lastValue = last;
+          lastDate = date;
+          lastTime = time;
+          minValue = min;
+          maxValue = max;
+          streak = currentStreak;
+        });
       }
+    } catch (e) {
+      debugPrint("Error loading INR history: $e");
     }
-
-    // Si no hay datos, establecer valores predeterminados
-    if (min == double.infinity) min = 0.0;
-    if (max == double.negativeInfinity) max = 0.0;
-
-    setState(() {
-      historyData = data;
-      lastValue = last;
-      lastDate = date;
-      lastTime = time;
-      minValue = min;
-      maxValue = max;
-      streak = currentStreak;
-    });
   }
 
   @override
@@ -630,23 +640,77 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                   },
                 );
 
-                if (resultado == "guardado") {
+                if (resultado != null &&
+                    resultado is Map<String, dynamic> &&
+                    resultado['status'] == "guardado") {
+                  debugPrint("INR value added, refreshing history...");
+
+                  // Force refresh data immediately after adding new INR value
                   await _loadInrHistory();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      elevation: 0,
-                      behavior: SnackBarBehavior.floating,
-                      backgroundColor: Colors.transparent,
-                      content: AwesomeSnackbarContent(
-                        title: '¡Listo!',
-                        color: Colors.green,
-                        message:
-                            'El valor de INR fue registrado correctamente.',
-                        contentType: ContentType.success,
-                        inMaterialBanner: true,
-                      ),
-                    ),
-                  );
+
+                  // Check if the value is out of range and if alerts are enabled
+                  if (resultado['alertsEnabled'] == true &&
+                      resultado['isOutOfRange'] == true) {
+                    final double inrValue = resultado['value'];
+                    final double minRange = resultado['minRange'];
+                    final double maxRange = resultado['maxRange'];
+
+                    // Instead of using testNotification, use showNotification directly
+                    String title =
+                        inrValue < minRange ? 'INR bajo' : 'INR elevado';
+                    String message =
+                        inrValue < minRange
+                            ? 'Tu valor de INR ($inrValue) está por debajo del rango recomendado ($minRange - $maxRange). Consulta a tu médico.'
+                            : 'Tu valor de INR ($inrValue) está por encima del rango recomendado ($minRange - $maxRange). Consulta a tu médico.';
+
+                    try {
+                      await NotificationService.showNotification(
+                        title: title,
+                        body: message,
+                      );
+
+                      debugPrint("INR alert notification sent successfully");
+                    } catch (e) {
+                      debugPrint("Error showing notification: $e");
+                    }
+
+                    // Show in-app snackbar feedback
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          elevation: 0,
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.transparent,
+                          content: AwesomeSnackbarContent(
+                            title: '¡Atención!',
+                            color: Colors.red,
+                            message:
+                                'Tu valor de INR está fuera del rango objetivo.',
+                            contentType: ContentType.failure,
+                            inMaterialBanner: true,
+                          ),
+                        ),
+                      );
+                    }
+                  } else {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          elevation: 0,
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.transparent,
+                          content: AwesomeSnackbarContent(
+                            title: '¡Listo!',
+                            color: Colors.green,
+                            message:
+                                'El valor de INR fue registrado correctamente.',
+                            contentType: ContentType.success,
+                            inMaterialBanner: true,
+                          ),
+                        ),
+                      );
+                    }
+                  }
                 }
               },
               backgroundColor: const Color(0xFF72C1E0),

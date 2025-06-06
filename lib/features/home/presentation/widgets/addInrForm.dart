@@ -1,7 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:inright/features/configurations/providers/medication_config_provider.dart';
+import 'package:inright/features/configurations/providers/notification_config_provider.dart';
 import 'package:inright/services/home/inr.service.dart';
+import 'package:provider/provider.dart';
 
 final _inrService = InrService();
 
@@ -16,6 +19,8 @@ class AddInrForm extends StatefulWidget {
 class _AddInrFormState extends State<AddInrForm> {
   // final TextEditingController _inrController = TextEditingController();
   late final TextEditingController _inrController;
+  bool _isLoading = false;
+
   @override
   void initState() {
     super.initState();
@@ -31,22 +36,78 @@ class _AddInrFormState extends State<AddInrForm> {
   }
 
   Future<void> _handleSave() async {
+    setState(() {
+      _isLoading = true; // Show loading indicator
+    });
+
     final valor = double.tryParse(_inrController.text.trim());
 
     if (valor != null) {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
+      try {
+        // Get the configured INR range
+        final configProvider = Provider.of<MedicationConfigProvider>(
+          context,
+          listen: false,
+        );
+        final notificationProvider = Provider.of<NotificationConfigProvider>(
+          context,
+          listen: false,
+        );
+        final inrRange = configProvider.inrRange;
+        final minRange = inrRange.start;
+        final maxRange = inrRange.end;
 
-      await _inrService.saveInr(valor);
+        // Check if INR notifications are enabled
+        final alertsEnabled = notificationProvider.alertaInr;
 
-      // Limpiar campo de texto
-      _inrController.clear();
+        // Call saveInr with the value
+        await _inrService.saveInr(valor);
 
-      // Cerrar modal y recargar desde Page2
-      Navigator.of(context).pop("guardado");
+        // Limpiar campo de texto
+        _inrController.clear();
+
+        // Cerrar modal y recargar desde Page2
+        if (mounted) {
+          // Determine if the value is out of range and alerts are enabled
+          final bool isOutOfRange = valor < minRange || valor > maxRange;
+
+          debugPrint("INR value saved: $valor");
+
+          final Map<String, dynamic> result = {
+            'status': 'guardado',
+            'value': valor,
+            'isOutOfRange': isOutOfRange,
+            'minRange': minRange,
+            'maxRange': maxRange,
+            'alertsEnabled': alertsEnabled,
+          };
+
+          Navigator.of(context).pop(result);
+        }
+      } catch (e) {
+        debugPrint("Error saving INR value: $e");
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Error al guardar: $e")));
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
+      }
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Por favor ingresa un número válido")),
-      );
+      setState(() {
+        _isLoading = false;
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Por favor ingresa un número válido")),
+        );
+      }
     }
   }
 
