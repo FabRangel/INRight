@@ -169,4 +169,18 @@ class NotificationConfigProvider with ChangeNotifier {
   ) async {
     await NotificationService.testNotification(context, _userEmail, type);
   }
+
+  void clearNotificationConfig() {
+    _alertaInr = true;
+    _recordatorioMed = true;
+    _valoresCriticos = true;
+    _push = true;
+    _email = false;
+    _horaNotificacion = "08:00";
+    _sonido = true;
+    _vibracion = true;
+    _userEmail = '';
+    _isLoading = false;
+    notifyListeners();
+  }
 }

@@ -1,6 +1,11 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:inright/features/auth/presentation/login_screen.dart';
+import 'package:inright/features/configurations/providers/medication_config_provider.dart';
+import 'package:inright/features/configurations/providers/notification_config_provider.dart';
+import 'package:inright/features/configurations/providers/profile_config_provider.dart';
 import 'package:inright/features/home/presentation/widgets/navbar.dart';
+import 'package:inright/features/home/providers/dosesProvider.dart';
 import 'package:inright/features/home/providers/user_provider.dart';
 import 'package:provider/provider.dart'; // 👈 Importa Navbar
 
@@ -92,11 +97,44 @@ class Sidebar extends StatelessWidget {
             context,
             Icons.logout,
             'Cerrar sesión',
-            onPressed: () {
+            onPressed: () async {
+              // Paso 1: cerrar sesión
+              await FirebaseAuth.instance.signOut();
+
+              // Paso 2: limpiar el estado de dosis (y otros si tienes)
+              // final dosisProvider = Provider.of<DosisProvider>(
+              //   context,
+              //   listen: false,
+              // );
+              // dosisProvider.clearDosis();
+
+              Provider.of<UserProvider>(context, listen: false).clearUserData();
+              Provider.of<MedicationConfigProvider>(
+                context,
+                listen: false,
+              ).clearConfig();
+              Provider.of<NotificationConfigProvider>(
+                context,
+                listen: false,
+              ).clearNotificationConfig();
+              Provider.of<ProfileConfigProvider>(
+                context,
+                listen: false,
+              ).clearProfileConfig();
+              Provider.of<DosisProvider>(
+                context,
+                listen: false,
+              ).clearDosis(); // si aplica
+
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const LoginScreen()),
+                (route) => false,
+              );
+
+              // Paso 3: redirigir al login
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const LoginScreen()),
-                (Route<dynamic> route) =>
-                    false, // Elimina todas las rutas anteriores
+                (Route<dynamic> route) => false,
               );
             },
           ),

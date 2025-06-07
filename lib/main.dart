@@ -36,7 +36,7 @@ void main() async {
   // Crear y precargar UserProvider
   final userProvider = UserProvider();
   if (authService.isAuthenticated) {
-    await userProvider.loadUserData();
+    await userProvider.loadUserData(forceRefresh: true);
   }
 
   // Crear el provider de medicación

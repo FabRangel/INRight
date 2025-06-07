@@ -459,4 +459,19 @@ class MedicationConfigProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  void clearConfig() {
+    _anticoagulante = "Sintróm";
+    _dosis = 4.0;
+    _esquemas.clear();
+    _inrRange = const RangeValues(2.0, 3.0);
+    _historial.clear();
+    _dosisGeneradas.clear();
+    _fechaInicioEsquema = null;
+    _frecuenciaInr = 7;
+    _configCargada = false;
+    _dosisSincronizadas = false;
+    _isLoading = false;
+    notifyListeners();
+  }
 }

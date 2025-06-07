@@ -129,4 +129,8 @@ class ProfileConfigProvider with ChangeNotifier {
       await loadProfileConfig();
     }
   }
+
+  void clearProfileConfig() {
+  _resetToDefaults();
+}
 }

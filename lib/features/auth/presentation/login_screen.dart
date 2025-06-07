@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:inright/features/home/providers/dosesProvider.dart';
 import 'package:provider/provider.dart';
 import 'package:inright/features/home/providers/user_provider.dart';
 import 'package:inright/services/auth/firebaseAuth.service.dart';
@@ -76,34 +77,49 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _refreshAllProviders(BuildContext context) async {
-    // Refrescar datos de usuario
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    await userProvider.refreshUserData();
+    // // Refrescar datos de usuario
+    // final userProvider = Provider.of<UserProvider>(context, listen: false);
+    // await userProvider.refreshUserData();
 
-    // Los demás providers tienen listeners para authStateChanges y se refrescarán automáticamente,
-    // pero podemos forzar una actualización si es necesario
-    try {
-      final profileProvider = Provider.of<ProfileConfigProvider>(
-        context,
-        listen: false,
-      );
-      profileProvider.forceRefresh();
+    // // Los demás providers tienen listeners para authStateChanges y se refrescarán automáticamente,
+    // // pero podemos forzar una actualización si es necesario
+    // try {
+    //   final profileProvider = Provider.of<ProfileConfigProvider>(
+    //     context,
+    //     listen: false,
+    //   );
+    //   profileProvider.forceRefresh();
 
-      final notificationProvider = Provider.of<NotificationConfigProvider>(
-        context,
-        listen: false,
-      );
-      if (!mounted) return;
-      notificationProvider.forceRefresh();
+    //   final notificationProvider = Provider.of<NotificationConfigProvider>(
+    //     context,
+    //     listen: false,
+    //   );
 
-      final medicationProvider = Provider.of<MedicationConfigProvider>(
-        context,
-        listen: false,
-      );
-      medicationProvider.forceRefresh();
-    } catch (e) {
-      print("Error refreshing providers: $e");
-    }
+    //   if (!mounted) return;
+    //   notificationProvider.forceRefresh();
+
+    //   final medicationProvider = Provider.of<MedicationConfigProvider>(
+    //     context,
+    //     listen: false,
+    //   );
+    //   medicationProvider.forceRefresh();
+    // } catch (e) {
+    //   print("Error refreshing providers: $e");
+    // }
+    await Provider.of<UserProvider>(context, listen: false).loadUserData(forceRefresh: true);
+    await Provider.of<MedicationConfigProvider>(
+      context,
+      listen: false,
+    ).forceRefresh();
+    Provider.of<NotificationConfigProvider>(
+      context,
+      listen: false,
+    ).forceRefresh();
+    await Provider.of<ProfileConfigProvider>(
+      context,
+      listen: false,
+    ).forceRefresh();
+    await Provider.of<DosisProvider>(context, listen: false).fetchDosis();
   }
 
   @override

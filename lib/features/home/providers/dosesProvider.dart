@@ -24,11 +24,17 @@ class DosisProvider extends ChangeNotifier {
     return _dosisDatos.reversed.toList(); // más reciente al final
   }
 
+  void clearDosis() {
+    _dosisDatos = [];
+    notifyListeners();
+  }
+
   double get promedioMg {
-    final mgList = _dosisDatos
-        .where((e) => e['dosis'] != null)
-        .map((e) => (e['dosis'] as num).toDouble())
-        .toList();
+    final mgList =
+        _dosisDatos
+            .where((e) => e['dosis'] != null)
+            .map((e) => (e['dosis'] as num).toDouble())
+            .toList();
 
     if (mgList.isEmpty) return 0.0;
     return mgList.reduce((a, b) => a + b) / mgList.length;

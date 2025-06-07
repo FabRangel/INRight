@@ -249,6 +249,21 @@ class UserProvider with ChangeNotifier {
     }
   }
 
+  Future<void> clearUserData() async {
+    _userName = 'Usuario';
+    _userEmail = 'No autenticado';
+    _photoUrl = null;
+    _isAuthenticated = false;
+    _isLoading = false;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('cached_user_name');
+    await prefs.remove('cached_user_email');
+    await prefs.remove('cached_user_photo');
+
+    if (!_disposed) notifyListeners();
+  }
+
   @override
   void dispose() {
     _disposed = true;

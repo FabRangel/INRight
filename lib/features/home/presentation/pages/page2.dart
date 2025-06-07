@@ -481,121 +481,64 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                               ],
                             ),
                             const SizedBox(height: 10),
-                            ...historyData.asMap().entries.map((entry) {
-                              final value =
-                                  entry.value['value']?.toDouble() ?? 0.0;
-                              final isItemInRange =
+                            ...historyData.map((item) {
+                              // ❶ ya NO uses asMap().entries
+                              final double value =
+                                  (item['value'] ?? 0).toDouble();
+                              final bool inRange =
                                   value >= inrRange.start &&
                                   value <= inrRange.end;
+                              final String id =
+                                  item['id']
+                                      .toString(); // ❷ id estable antes de setState
 
                               return Dismissible(
-                                key: Key(entry.key.toString()),
-                                background: Container(
-                                  margin: const EdgeInsets.symmetric(
-                                    vertical: 6,
-                                  ),
-                                  padding: const EdgeInsets.all(12),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.shade100,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  alignment: Alignment.centerLeft,
-                                  child: const Icon(
-                                    Icons.settings,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                secondaryBackground: Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.red.shade100,
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  alignment: Alignment.centerRight,
-                                  margin: const EdgeInsets.symmetric(
-                                    vertical: 6,
-                                  ),
-                                  padding: const EdgeInsets.all(12),
-                                  child: const Icon(
-                                    Icons.delete,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                confirmDismiss: (direction) async {
-                                  if (direction ==
-                                      DismissDirection.endToStart) {
-                                    // Eliminar
-                                    final confirm = await showDialog<bool>(
-                                      context: context,
-                                      builder:
-                                          (ctx) => AlertDialog(
-                                            title: const Text(
-                                              "Eliminar registro",
-                                            ),
-                                            content: const Text(
-                                              "¿Seguro que deseas eliminar este registro?",
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed:
-                                                    () => Navigator.of(
-                                                      ctx,
-                                                    ).pop(false),
-                                                child: const Text("Cancelar"),
-                                              ),
-                                              TextButton(
-                                                onPressed:
-                                                    () => Navigator.of(
-                                                      ctx,
-                                                    ).pop(true),
-                                                child: const Text("Eliminar"),
-                                              ),
-                                            ],
-                                          ),
-                                    );
-                                    if (confirm == true) {
-                                      await InrService().deleteInr(
-                                        entry.value['id'],
-                                      );
-                                      setState(
-                                        () => historyData.removeAt(entry.key),
-                                      );
-                                    }
-                                    return confirm ?? false;
-                                  } else {
-                                    final resultado =
-                                        await showModalBottomSheet(
-                                          context: context,
-                                          isScrollControlled: true,
-                                          shape: const RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.vertical(
-                                              top: Radius.circular(25),
-                                            ),
-                                          ),
-                                          builder:
-                                              (_) => AddInrForm(
-                                                existingData: entry.value,
-                                              ),
-                                        );
-                                    if (resultado == "guardado")
-                                      await _loadInrHistory();
+                                key: ValueKey(
+                                  id,
+                                ), // ❸ clave estable (¡no un índice!)
+                                direction: DismissDirection.endToStart,
+                                background:
+                                    _buildEditBg(), // usa las mismas cajas de iconos que ya tenías
+                                secondaryBackground: _buildDeleteBg(),
+
+                                // ❹ Pide confirmación ANTES de la animación
+                                confirmDismiss: (dir) async {
+                                  if (dir != DismissDirection.endToStart)
                                     return false;
-                                  }
+                                  return (await _confirmDelete(context)) ??
+                                      false;
                                 },
+
+                                // ❺ Elimina inmediatamente DESPUÉS de la animación
+                                onDismissed: (_) {
+                                  // a) quita de la lista para el próximo build
+                                  setState(() {
+                                    historyData.removeWhere(
+                                      (e) => e['id'] == id,
+                                    );
+                                  });
+
+                                  // b) borra en BD y refresca, pero SIN bloquear el frame
+                                  InrService()
+                                      .deleteInr(id)
+                                      .then((_) => _loadInrHistory());
+                                },
+
                                 child: AnimatedHistoryItem(
-                                  index: entry.key,
+                                  index: historyData.indexOf(item),
                                   item: HistoryItem(
                                     value: value,
-                                    date: entry.value['date'] ?? '',
-                                    time: entry.value['time'] ?? '',
+                                    date: item['date'] ?? '',
+                                    time: item['time'] ?? '',
                                     trend: _determineTrend(
-                                      entry.key,
+                                      historyData.indexOf(item),
                                       historyData,
                                     ),
-                                    isInRange: isItemInRange,
+                                    isInRange: inRange,
                                   ),
                                 ),
                               );
-                            }),
+                            }).toList(),
                             if (historyData.isEmpty)
                               const Center(
                                 child: Padding(
@@ -742,6 +685,51 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
   }
 }
 
+Widget _buildEditBg() {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 6),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Colors.blue.shade100,
+      borderRadius: BorderRadius.circular(16),
+    ),
+    alignment: Alignment.centerLeft,
+    child: const Icon(Icons.settings, color: Colors.black),
+  );
+}
+
+Widget _buildDeleteBg() {
+  return Container(
+    margin: const EdgeInsets.symmetric(vertical: 6),
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Colors.red.shade100,
+      borderRadius: BorderRadius.circular(16),
+    ),
+    alignment: Alignment.centerRight,
+    child: const Icon(Icons.delete, color: Colors.black),
+  );
+}
+
+Future<bool?> _confirmDelete(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text("Eliminar registro"),
+      content: const Text("¿Seguro que deseas eliminar este registro?"),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: const Text("Cancelar"),
+        ),
+        TextButton(
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: const Text("Eliminar"),
+        ),
+      ],
+    ),
+  );
+}
 class CustomWaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {

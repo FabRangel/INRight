@@ -22,7 +22,7 @@ class InrService {
 
     // Save to Firestore
     await FirebaseFirestore.instance
-        .collection('users')
+        .collection('personas')
         .doc(user.uid)
         .collection('inr_records')
         .add({
@@ -45,7 +45,7 @@ class InrService {
     // Get data from Firestore ordered by timestamp descending (newest first)
     final snapshot =
         await FirebaseFirestore.instance
-            .collection('users')
+            .collection('personas')
             .doc(user.uid)
             .collection('inr_records')
             .orderBy('timestamp', descending: true)
@@ -68,23 +68,23 @@ class InrService {
   }
 
   Future<void> deleteInr(String id) async {
-    try {
-      final user = _auth.currentUser;
-      if (user == null) {
-        print("ERROR: Usuario no autenticado");
-        return;
-      }
-
-      await _firestore
-          .collection('personas')
-          .doc(user.uid)
-          .collection('inr_records')
-          .doc(id)
-          .delete();
-
-      print("✅ Registro INR eliminado: $id");
-    } catch (e) {
-      print("🔥 ERROR al eliminar INR: $e");
+  try {
+    final user = _auth.currentUser;
+    if (user == null) {
+      print("ERROR: Usuario no autenticado");
+      return;
     }
+
+    await _firestore
+        .collection('personas') 
+        .doc(user.uid)
+        .collection('inr_records')
+        .doc(id)
+        .delete();
+
+    print("✅ Registro INR eliminado: $id");
+  } catch (e) {
+    print("🔥 ERROR al eliminar INR: $e");
   }
+}
 }
