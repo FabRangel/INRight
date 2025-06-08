@@ -288,6 +288,34 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
     final screenHeight = MediaQuery.of(context).size.height;
     final topPadding = MediaQuery.of(context).padding.top;
 
+    void _editInr(Map<String, dynamic> item) async {
+      final resultado = await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+        ),
+        builder:
+            (_) => Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+              ),
+              child: AddInrForm(existingData: item),
+            ),
+      );
+
+      if (resultado != null &&
+          resultado is Map<String, dynamic> &&
+          resultado['status'] == "guardado") {
+        await _loadInrHistory();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Registro actualizado correctamente.")),
+          );
+        }
+      }
+    }
+
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 247, 247, 249),
       body: Stack(
@@ -496,19 +524,26 @@ class _Page2State extends State<Page2> with SingleTickerProviderStateMixin {
                                 key: ValueKey(
                                   id,
                                 ), // ❸ clave estable (¡no un índice!)
-                                direction: DismissDirection.endToStart,
+                                direction: DismissDirection.horizontal,
                                 background:
                                     _buildEditBg(), // usa las mismas cajas de iconos que ya tenías
                                 secondaryBackground: _buildDeleteBg(),
-
                                 // ❹ Pide confirmación ANTES de la animación
                                 confirmDismiss: (dir) async {
-                                  if (dir != DismissDirection.endToStart)
-                                    return false;
-                                  return (await _confirmDelete(context)) ??
-                                      false;
+                                  if (dir == DismissDirection.endToStart) {
+                                    // Confirmación para eliminar
+                                    return (await _confirmDelete(context)) ??
+                                        false;
+                                  } else if (dir ==
+                                      DismissDirection.startToEnd) {
+                                    // Acción para editar
+                                    _editInr(
+                                      item,
+                                    ); // <-- Llama aquí tu función para editar
+                                    return false; // No lo elimines de la lista
+                                  }
+                                  return false;
                                 },
-
                                 // ❺ Elimina inmediatamente DESPUÉS de la animación
                                 onDismissed: (_) {
                                   // a) quita de la lista para el próximo build
@@ -714,22 +749,24 @@ Widget _buildDeleteBg() {
 Future<bool?> _confirmDelete(BuildContext context) {
   return showDialog<bool>(
     context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text("Eliminar registro"),
-      content: const Text("¿Seguro que deseas eliminar este registro?"),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(false),
-          child: const Text("Cancelar"),
+    builder:
+        (ctx) => AlertDialog(
+          title: const Text("Eliminar registro"),
+          content: const Text("¿Seguro que deseas eliminar este registro?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: const Text("Cancelar"),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: const Text("Eliminar"),
+            ),
+          ],
         ),
-        TextButton(
-          onPressed: () => Navigator.of(ctx).pop(true),
-          child: const Text("Eliminar"),
-        ),
-      ],
-    ),
   );
 }
+
 class CustomWaveClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {

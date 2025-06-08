@@ -68,23 +68,46 @@ class InrService {
   }
 
   Future<void> deleteInr(String id) async {
-  try {
-    final user = _auth.currentUser;
-    if (user == null) {
-      print("ERROR: Usuario no autenticado");
-      return;
-    }
+    try {
+      final user = _auth.currentUser;
+      if (user == null) {
+        print("ERROR: Usuario no autenticado");
+        return;
+      }
 
-    await _firestore
-        .collection('personas') 
+      await _firestore
+          .collection('personas')
+          .doc(user.uid)
+          .collection('inr_records')
+          .doc(id)
+          .delete();
+
+      print("✅ Registro INR eliminado: $id");
+    } catch (e) {
+      print("🔥 ERROR al eliminar INR: $e");
+    }
+  }
+
+  Future<void> updateInr(String id, double valor) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final now = DateTime.now();
+    final formattedDate =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final formattedTime =
+        "${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}";
+
+    await FirebaseFirestore.instance
+        .collection('personas')
         .doc(user.uid)
         .collection('inr_records')
         .doc(id)
-        .delete();
-
-    print("✅ Registro INR eliminado: $id");
-  } catch (e) {
-    print("🔥 ERROR al eliminar INR: $e");
+        .update({
+          'value': valor,
+          'date': formattedDate,
+          'time': formattedTime,
+          'timestamp': FieldValue.serverTimestamp(),
+        });
   }
-}
 }

@@ -36,6 +36,9 @@ class _AddInrFormState extends State<AddInrForm> {
   }
 
   Future<void> _handleSave() async {
+    final isEditing =
+        widget.existingData != null && widget.existingData!['id'] != null;
+
     setState(() {
       _isLoading = true; // Show loading indicator
     });
@@ -61,7 +64,11 @@ class _AddInrFormState extends State<AddInrForm> {
         final alertsEnabled = notificationProvider.alertaInr;
 
         // Call saveInr with the value
-        await _inrService.saveInr(valor);
+        if (isEditing) {
+          await _inrService.updateInr(widget.existingData!['id'], valor);
+        } else {
+          await _inrService.saveInr(valor);
+        }
 
         // Limpiar campo de texto
         _inrController.clear();
@@ -142,9 +149,11 @@ class _AddInrFormState extends State<AddInrForm> {
             ),
           ),
           const SizedBox(height: 20),
-          const Center(
+          Center(
             child: Text(
-              'Nuevo Registro de INR',
+              widget.existingData != null
+                  ? 'Editar registro de INR'
+                  : 'Nuevo Registro de INR',
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
