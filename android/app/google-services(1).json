@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "1006869933081",
+    "project_id": "inrangel",
+    "storage_bucket": "inrangel.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006869933081:android:aa6a4c93b2769c18018e88",
+        "android_client_info": {
+          "package_name": "com.example.inright"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1006869933081-b0cqkobhan6t1jd1q5cdjiq9gujrcur8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.inright",
+            "certificate_hash": "5516907315e586eeabedc451f59f725b2a4dbf5d"
+          }
+        },
+        {
+          "client_id": "1006869933081-p5u9e41kk1jc8gc7b8603n0e8qfiu0iq.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmKDTsxohzu7jm8CUJWORJ-BaLUBP-yU8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1006869933081-p5u9e41kk1jc8gc7b8603n0e8qfiu0iq.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1006869933081-v84h7nrj9cb0dokqt2uvva6pjml5suot.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.inright"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

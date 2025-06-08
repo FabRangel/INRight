@@ -1,0 +1,156 @@
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:flutter/material.dart';
+import 'package:inright/features/home/presentation/pages/page4.dart';
+import 'package:inright/features/home/presentation/widgets/addInrForm.dart'
+    show AddInrForm;
+import 'package:inright/features/home/presentation/widgets/navbar.dart';
+
+class QuickActionsWidget extends StatelessWidget {
+  const QuickActionsWidget({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Padding(
+        padding: const EdgeInsets.all(0),
+        child: Container(
+          padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 10,
+            bottom: 10,
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 10,
+                offset: Offset(0, 5),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                "Acciones rápidas",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 15),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildActionItem(
+                    Icons.access_time,
+                    "Ver mis\ndosis",
+                    const Color.fromARGB(255, 204, 232, 255),
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Navbar(initialPage: 3),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildActionItem(
+                    Icons.remove_red_eye,
+                    "Ver\ntendencia",
+                    const Color.fromARGB(255, 217, 251, 220),
+                    () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const Navbar(initialPage: 0),
+                        ),
+                      );
+                    },
+                  ),
+                  _buildActionItem(
+                    Icons.calendar_today,
+                    "Nueva\nprueba",
+                    const Color.fromARGB(255, 251, 255, 196),
+                    () async {
+                      final resultado = await showModalBottomSheet(
+                        isDismissible: true,
+                        enableDrag: true,
+                        context: context,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(25),
+                          ),
+                        ),
+                        isScrollControlled: true,
+                        builder: (BuildContext context) {
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom: MediaQuery.of(context).viewInsets.bottom,
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                            ),
+                            child: const AddInrForm(),
+                          );
+                        },
+                      );
+                      if (resultado == "guardado") {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            elevation: 0,
+                            behavior: SnackBarBehavior.floating,
+                            backgroundColor: Colors.transparent,
+                            content: AwesomeSnackbarContent(
+                              title: '¡Listo!',
+                              color: Colors.green,
+                              message:
+                                  'El valor de INR fue registrado correctamente.',
+                              contentType: ContentType.success,
+                              inMaterialBanner: true,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionItem(
+    IconData icon,
+    String text,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return GestureDetector(
+      onTap: onTap, // 👈 aquí ejecuta la navegación
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            child: Icon(icon, color: Colors.black, size: 18),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            text,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+        ],
+      ),
+    );
+  }
+}
