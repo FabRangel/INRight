@@ -17,6 +17,10 @@ class Sidebar extends StatelessWidget {
     final userProvider = Provider.of<UserProvider>(context);
     final photoUrl = userProvider.userProfilePhotoUrl;
     final userName = userProvider.userName;
+
+    final parts = userName.split(' ');
+    final displayName =
+        parts.length > 1 ? '${parts[0]} ${parts[1][0]}.' : parts[0];
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
@@ -44,7 +48,7 @@ class Sidebar extends StatelessWidget {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  '${userName.split(' ')[0]} ${userName.split(' ')[1]}', // Muestra solo el primer nombre
+                  '${displayName}', // Muestra solo el primer nombre
                   style: const TextStyle(fontSize: 20, color: Colors.white),
                 ),
               ],
