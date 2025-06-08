@@ -22,6 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final FirebaseAuthService _firebaseAuthService = FirebaseAuthService();
   bool _isProcessingLogout = false;
+  bool _obscurePassword = true;
 
   @override
   void initState() {
@@ -106,7 +107,10 @@ class _LoginScreenState extends State<LoginScreen> {
     // } catch (e) {
     //   print("Error refreshing providers: $e");
     // }
-    await Provider.of<UserProvider>(context, listen: false).loadUserData(forceRefresh: true);
+    await Provider.of<UserProvider>(
+      context,
+      listen: false,
+    ).loadUserData(forceRefresh: true);
     await Provider.of<MedicationConfigProvider>(
       context,
       listen: false,
@@ -159,15 +163,25 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               ),
               const SizedBox(height: 10),
-              CustomTextField(
-                label: "Contraseña",
-                isPassword: true,
+              TextFormField(
                 controller: _passwordController,
-                validator:
-                    (value) =>
-                        value == null || value.isEmpty
-                            ? 'La contraseña es requerida'
-                            : null,
+                obscureText: _obscurePassword,
+                decoration: InputDecoration(
+                  labelText: 'Contraseña',
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_off
+                          : Icons.visibility,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                  border: const OutlineInputBorder(),
+                ),
               ),
               const SizedBox(height: 10),
               Align(
