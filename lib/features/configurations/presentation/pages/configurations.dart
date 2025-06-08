@@ -33,9 +33,11 @@ class _ConfigurationsState extends State<Configurations> {
   bool _isUploadingImage = false;
   File? _image;
   String? _uploadedImageUrl;
-
   String _userName = 'Usuario';
   bool _isLoading = true;
+
+  late final TextEditingController _pesoController;
+  late final TextEditingController _alturaController;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -72,6 +74,23 @@ class _ConfigurationsState extends State<Configurations> {
   void initState() {
     super.initState();
     _loadUserData();
+    final profileProvider = Provider.of<ProfileConfigProvider>(
+      context,
+      listen: false,
+    );
+    _pesoController = TextEditingController(
+      text: profileProvider.peso.toStringAsFixed(0),
+    );
+    _alturaController = TextEditingController(
+      text: profileProvider.altura.toStringAsFixed(0),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pesoController.dispose();
+    _alturaController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadUserData() async {
@@ -335,13 +354,21 @@ class _ConfigurationsState extends State<Configurations> {
                                 labelText: "Peso (kg)",
                                 border: OutlineInputBorder(),
                               ),
-                              controller: TextEditingController(
-                                text: profileProvider.peso.toStringAsFixed(0),
-                              ),
+                              controller: _pesoController,
                               onChanged: (val) {
-                                profileProvider.setPeso(
-                                  double.tryParse(val) ?? profileProvider.peso,
-                                );
+                                final parsed = double.tryParse(val);
+                                if (parsed != null && parsed > 0) {
+                                  profileProvider.setPeso(parsed);
+                                } else {
+                                  // puedes mostrar un error, vibrar, o ignorar la entrada
+                                  _showTopSnackBar(
+                                    context,
+                                    "Dato inválido",
+                                    "El peso debe ser mayor a cero.",
+                                    ContentType.failure,
+                                    Colors.red,
+                                  );
+                                }
                               },
                             ),
                           ],
@@ -453,14 +480,21 @@ class _ConfigurationsState extends State<Configurations> {
                                 labelText: "Altura (cm)",
                                 border: OutlineInputBorder(),
                               ),
-                              controller: TextEditingController(
-                                text: profileProvider.altura.toStringAsFixed(0),
-                              ),
+                              controller: _alturaController,
                               onChanged: (val) {
-                                profileProvider.setAltura(
-                                  double.tryParse(val) ??
-                                      profileProvider.altura,
-                                );
+                                final parsed = double.tryParse(val);
+                                if (parsed != null && parsed > 0) {
+                                  profileProvider.setAltura(parsed);
+                                } else {
+                                  // puedes mostrar un error, vibrar, o ignorar la entrada
+                                  _showTopSnackBar(
+                                    context,
+                                    "Dato inválido",
+                                    "La altura debe ser mayor a cero.",
+                                    ContentType.failure,
+                                    Colors.red,
+                                  );
+                                }
                               },
                             ),
                           ],
