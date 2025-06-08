@@ -258,11 +258,16 @@ class MedicationConfigProvider extends ChangeNotifier {
   }
 
   void generarDosisSegunEsquema({bool silent = false}) {
+    if (_esquemas.isEmpty || fechaInicioEsquema == null) return;
+
     final hoy = DateTime.now();
     _dosisGeneradas.clear();
 
     for (int i = 0; i < 3; i++) {
       final fecha = hoy.subtract(Duration(days: i));
+      if (fecha.isBefore(fechaInicioEsquema!))
+        continue; // ⛔️ no generar dosis antes
+
       final diaNombre = _nombreDiaSemana(fecha.weekday);
 
       for (var esquema in _esquemas) {
@@ -335,6 +340,7 @@ class MedicationConfigProvider extends ChangeNotifier {
   }
 
   void marcarFaltas() {
+    if (fechaInicioEsquema == null) return;
     final ahora = DateTime.now();
     final hoy = DateTime(ahora.year, ahora.month, ahora.day);
 
@@ -345,8 +351,14 @@ class MedicationConfigProvider extends ChangeNotifier {
         dosis.fecha.day,
       );
 
+      if (!dosis.tomada &&
+          dosis.fecha.isBefore(hoy) &&
+          !dosis.fecha.isBefore(fechaInicioEsquema!)) {
+        dosis.estado = 'falta';
+      }
+
       if (!dosis.tomada && fechaDosis.isBefore(hoy)) {
-        dosis.estado = 'falta'; // ¡Aquí se marca correctamente!
+        dosis.estado = 'falta';
       } else if (!dosis.tomada && fechaDosis.isAtSameMomentAs(hoy)) {
         dosis.estado = 'pendiente';
       }

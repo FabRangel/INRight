@@ -193,7 +193,7 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
             provider.esquemas.isNotEmpty &&
             provider.fechaInicioEsquema != null) {
           provider
-            ..generarDosisSegunEsquema(silent: true)
+            ..generarDosisSegunEsquema(silent: false)
             ..marcarFaltas();
         }
 
@@ -232,6 +232,7 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
     _notifier.initialize(initSettings);
 
     Future.microtask(_inicializarMensajeYTimer);
+    Provider.of<MedicationConfigProvider>(context, listen: false).generarDosisSegunEsquema();
   }
 
   // Método estático para obtener información de la dosis actual
@@ -608,7 +609,7 @@ class _Page5State extends State<Page5> with SingleTickerProviderStateMixin {
   // ──────────────────────────── HISTORIAL ────────────────────────────────
   Widget _buildDoseHistory(Map<String, List<DosisDiaria>> grouped) {
     final controller = ScrollController();
-
+    
     controller.addListener(() {
       if (controller.position.pixels >=
           controller.position.maxScrollExtent - 200) {
